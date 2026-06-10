@@ -1,0 +1,107 @@
+# PLAN.md — SC1986 建置計畫與進度追蹤
+
+> 本檔是進度的唯一真相來源。每完成一項就勾選;每個工作階段結束時在文末 Progress Log 補一行紀錄。
+> 階段採大顆粒拆分,完成 Stage 5 後由業主人工審查。
+
+## 階段總覽
+
+| Stage | 名稱 | 狀態 |
+| --- | --- | --- |
+| 0 | 文件與規範重寫 | ✅ 完成(2026-06-10) |
+| 1 | 專案基建與資料庫 | ✅ 完成(2026-06-10) |
+| 2 | 前台商品型錄 | ✅ 完成(2026-06-10) |
+| 3 | 報價車與詢價流程 | ✅ 完成(2026-06-10) |
+| 4 | 管理後台 | ✅ 完成(2026-06-10) |
+| 5 | SEO 與上線整備 | ✅ 完成(2026-06-10) |
+| 6 | 業主審查與真實資料上線 | 🔶 等待人工 |
+
+---
+
+## Stage 0 — 文件與規範重寫 ✅
+
+- [x] 刪除舊 docs 與根目錄舊資源,Logo 移至 `public/brand/logo.png`
+- [x] `CLAUDE.md`(工作指引)
+- [x] `PLAN.md`(本檔)
+- [x] `README.md`(快速啟動)
+- [x] `docs/01-business.md` 業務需求
+- [x] `docs/02-architecture.md` 技術架構
+- [x] `docs/03-design-system.md` 設計系統(業務型商城模板)
+- [x] `docs/04-operations.md` 部署營運與驗收
+- [x] `.claude/skills/ui-design/SKILL.md`
+- [x] `.claude/skills/database/SKILL.md`
+- [x] `.claude/skills/qa-release/SKILL.md`
+
+## Stage 1 — 專案基建與資料庫 ✅
+
+- [x] Next.js 15.3 + React 19 + TS strict + Tailwind v4 + pnpm,ESLint、`.env.example`、`.gitignore`
+- [x] 集中設定:`src/config/routes.ts`、`storage.ts`、`site.ts`
+- [x] 基礎 UI 元件(button、input、textarea、select、label、badge、card、table、skeleton、pagination)
+- [x] Light / dark / system 主題(next-themes + 語意 token)
+- [x] 全站佈局:頂部資訊列、Header(Logo+搜尋+報價車)、分類導覽、Footer
+- [x] Supabase migration `0001_init.sql`:7 enum、10 表、索引、trigger、RLS、`is_admin()`、`create_quote_request` RPC、storage bucket
+- [x] `supabase/seed.sql`:8 品牌、8+4 分類、26 商品(含 draft/archived 測試品)與規格
+- [x] Supabase 客戶端(server anon / service-role / middleware)與 `lib/env.ts` fail-closed 驗證
+
+## Stage 2 — 前台商品型錄 ✅
+
+- [x] 首頁:品牌紅 Hero、分類捷徑(8 格)、最新上架、詢價流程 3 步驟、現貨/商品統計、品牌牆
+- [x] `/products`:ILIKE 搜尋(SKU/品名/簡述/描述)、分類樹側欄(含子孫分類)、價格模式/庫存/品牌篩選、3 種排序、分頁(24/頁,全伺服器端)
+- [x] `/products/[slug]`:麵包屑、多圖 gallery、規格表、PriceDisplay 嚴格依 price_mode、訂購說明、相關商品(同分類→同品牌)
+- [x] 行動版:抽屜分類選單、details 收合篩選
+- [x] `loading.tsx` 骨架、`error.tsx`(fail-closed)、`not-found.tsx`
+
+## Stage 3 — 報價車與詢價流程 ✅
+
+- [x] QuoteCart context + localStorage(`sc1986_quote_cart`、結構驗證、損壞自清、上限 50 項/9999 件)
+- [x] Header 報價車數量 badge
+- [x] `/quote`:品項編輯(數量/備註/移除)、聯絡表單、Zod 前端驗證
+- [x] `/api/quote`:Zod、32KB 上限、IP rate limit(5 次/分)、honeypot、RPC 原子寫入、無效品項回報並自動移除
+- [x] `/quote/success?ref=`:案件編號顯示
+- [x] Resend 通知信(REST,無 SDK)+ `notification_status/error` 以 service client 回寫;開發環境無金鑰記為 skipped
+
+## Stage 4 — 管理後台 ✅
+
+- [x] `/admin/login` + Supabase Auth;`requireAdmin()` fail-closed(layout + 每個 action/route handler 雙重檢查;非管理者自動登出)
+- [x] 儀表板:商品/詢價統計卡、通知失敗警示、最新 5 件詢價
+- [x] 商品列表:搜尋、狀態篩選、分頁、批量上架/草稿/封存/刪除(刪除同步清 Storage)
+- [x] 商品新增/編輯:Zod、slug 自動產生與衝突處理、規格動態列、多圖上傳(MIME/4MB/8 張)與排序/刪除
+- [x] CSV 匯出(route handler、BOM、規格序列化)
+- [x] CSV 匯入:批次+逐列記錄、成功列一律 draft、單列錯誤不中止、錯誤列 CSV 下載;品牌/分類不存在即報錯(不自動建立);圖片不在匯入範圍(授權考量)
+- [x] 詢價管理:列表篩選(狀態/關鍵字)、詳情(客戶/品項快照)、狀態更新、內部備註(無公開 API 暴露)
+
+## Stage 5 — SEO 與上線整備 ✅
+
+- [x] 全站與商品頁 metadata、OG、canonical;成功頁/後台 noindex
+- [x] `sitemap.ts`(只含 active 商品,上限 5000)、`robots.ts`(擋 /admin、/api)
+- [x] `/about` 公司與詢價流程說明頁
+- [x] `pnpm typecheck` ✅ / `pnpm lint` ✅ / `pnpm build` ✅(22 路由,build 不需 DB 連線)
+- [x] 煙霧測試:robots 200;無環境變數時 `/` 與 `/admin` fail-closed(500,無示範資料)
+- [x] 更新本檔與 Progress Log
+
+## Stage 6 — 業主審查與真實資料上線(人工)🔶
+
+- [ ] 業主審查 UI、文案、流程(`src/config/site.ts` 的統編/電話/地址/信箱為占位,需更換)
+- [ ] 建立正式 Supabase 專案 → 跑 `supabase/migrations/0001_init.sql` → 建管理者(見 README)
+- [ ] 開發環境驗證種子資料流程後,正式環境匯入真實且已授權的商品(CSV → 草稿 → 審核上架)
+- [ ] Vercel 環境變數、網域、Cloudflare DNS、Resend 寄件網域驗證
+- [ ] 依 `.claude/skills/qa-release/` 完成權限/詢價/匯入/雙主題/RWD 端對端 QA
+
+## 已知限制與第二階段候選
+
+- Rate limit 為記憶體式(多 instance 各自計數);流量大後改集中式(Upstash 等)。
+- 搜尋為 ILIKE + pg_trgm,不含規格欄位;中文檢索品質需求高時導入 Meilisearch。
+- 商品圖片需在商品建立後於編輯頁上傳;CSV 不匯入圖片(授權控管)。
+- 會員中心、線上付款(ECPay/NewebPay)、訂單物流、AI 客服 → 第二階段。
+
+---
+
+## Progress Log
+
+| 日期 | 階段 | 紀錄 |
+| --- | --- | --- |
+| 2026-06-10 | Stage 0 | 啟動重建:清除舊文件,確認技術棧 Next.js 15 + Supabase,完成全部新文件與 3 個 skills。 |
+| 2026-06-10 | Stage 1 | 專案骨架、集中設定、UI 元件、主題、佈局、migration(10 表+RLS+RPC)與 seed 完成;pnpm install 成功。 |
+| 2026-06-10 | Stage 2 | 首頁/目錄/詳情/關於完成,廣華式版型,伺服器端搜尋篩選分頁。 |
+| 2026-06-10 | Stage 3 | 報價車、/api/quote(原子 RPC+防濫用)、成功頁、Resend 通知與狀態回寫完成。 |
+| 2026-06-10 | Stage 4 | 登入與 fail-closed 守門、儀表板、商品 CRUD+圖片+批量、CSV 匯出入、詢價管理完成。 |
+| 2026-06-10 | Stage 5 | SEO/sitemap/robots、typecheck+lint+build 全綠、fail-closed 煙霧測試通過;交付業主審查(Stage 6)。 |

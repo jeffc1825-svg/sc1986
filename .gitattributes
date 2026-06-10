@@ -1,0 +1,15 @@
+# 統一換行符,避免跨平台 CRLF/LF 差異
+* text=auto eol=lf
+
+# 二進位檔
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pem binary
+
+# pnpm lockfile 以 LF 處理、diff 摺疊
+pnpm-lock.yaml text eol=lf linguist-generated=true

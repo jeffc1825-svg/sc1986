@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   SC1986 語意設計 token — 見 docs/03-design-system.md
+   元件一律使用語意 class(bg-background / text-foreground ...)
+   ============================================================ */
+:root {
+  --background: hsl(0 0% 98%);
+  --foreground: hsl(240 6% 10%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(240 6% 10%);
+  --muted: hsl(240 5% 94%);
+  --muted-foreground: hsl(240 4% 42%);
+  --primary: hsl(357 64% 52%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(240 5% 92%);
+  --secondary-foreground: hsl(240 6% 12%);
+  --accent: hsl(357 70% 96%);
+  --accent-foreground: hsl(357 64% 38%);
+  --destructive: hsl(0 72% 45%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(240 6% 88%);
+  --input: hsl(240 6% 80%);
+  --ring: hsl(357 64% 52%);
+}
+
+.dark {
+  --background: hsl(240 6% 7%);
+  --foreground: hsl(0 0% 95%);
+  --card: hsl(240 5% 10%);
+  --card-foreground: hsl(0 0% 95%);
+  --muted: hsl(240 5% 16%);
+  --muted-foreground: hsl(240 5% 62%);
+  --primary: hsl(357 70% 58%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(240 5% 18%);
+  --secondary-foreground: hsl(0 0% 95%);
+  --accent: hsl(357 40% 18%);
+  --accent-foreground: hsl(357 80% 80%);
+  --destructive: hsl(0 70% 55%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(240 5% 22%);
+  --input: hsl(240 5% 28%);
+  --ring: hsl(357 70% 58%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans:
+    ui-sans-serif, -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei",
+    "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 數字等寬,規格與價格對齊 */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

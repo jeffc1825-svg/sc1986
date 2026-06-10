@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="商品圖片準備中">
+  <rect width="400" height="400" fill="#f4f4f5"/>
+  <g fill="none" stroke="#d4d4d8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="120" y="140" width="160" height="120" rx="12"/>
+    <circle cx="165" cy="180" r="14"/>
+    <path d="M140 250l45-45 35 35 25-22 35 32"/>
+  </g>
+  <text x="200" y="310" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#a1a1aa">圖片準備中</text>
+</svg>
