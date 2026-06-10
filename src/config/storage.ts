@@ -8,6 +8,8 @@ export const storageKeys = {
   quoteCart: "sc1986_quote_cart",
   /** 主題由 next-themes 管理,key 統一指定 */
   theme: "sc1986_theme",
+  /** 測試站提醒 popup 已關閉(值 "1";正式上線移除提醒時可一併清除) */
+  testNoticeDismissed: "sc1986_test_notice_dismissed",
 } as const;
 
 export const supabaseStorage = {

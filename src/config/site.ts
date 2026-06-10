@@ -33,7 +33,9 @@ export const siteConfig = {
   },
   notice: {
     pricing: "標示價格均為含稅參考價 TWD,正式價格以業務報價為準",
-    topBar: "線上詢價免登入,業務將於 1 個工作天內回覆",
+    topBar: "線上詢價免登入,業務將會盡快回覆",
+    /** 測試期提醒 — 正式上線時移除此文案與 test-mode 相關元件 */
+    testing: "本網站目前為測試環境,商品資料與站點功能尚未正式啟用,請避免下單與詢價操作",
   },
   brand: {
     logo: "/brand/logo.png",

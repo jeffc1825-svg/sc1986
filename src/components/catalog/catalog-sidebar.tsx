@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SlidersHorizontal, X } from "lucide-react";
 import { productsUrl } from "@/config/routes";
 import { findNodeBySlug } from "@/lib/catalog/categories";
+import { CategorySidebarTree } from "@/components/catalog/category-sidebar-tree";
 import type { BrandRow, CatalogQuery, CategoryNode } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,10 @@ export function CatalogSidebar({ tree, brands, query }: CatalogSidebarProps) {
   const hasFilter =
     !!query.category || !!query.brand || !!query.price_mode || !!query.stock_status;
 
+  // 預設展開:選取分類的祖先 + 自身(client 樹元件可再手動展開其他節點)
+  const found = query.category ? findNodeBySlug(tree, query.category) : null;
+  const defaultExpandedIds = found ? [...found.ancestorIds, found.node.id] : [];
+
   return (
     <div className="space-y-5">
       {hasFilter ? (
@@ -53,13 +58,11 @@ export function CatalogSidebar({ tree, brands, query }: CatalogSidebarProps) {
               全部商品
             </SidebarLink>
           </li>
-          <CategoryTreeItems
+          <CategorySidebarTree
             nodes={tree}
             base={base}
             activeSlug={query.category}
-            ancestorIds={
-              query.category ? findNodeBySlug(tree, query.category)?.ancestorIds ?? null : null
-            }
+            defaultExpandedIds={defaultExpandedIds}
           />
         </ul>
       </section>
@@ -91,49 +94,6 @@ export function CatalogSidebar({ tree, brands, query }: CatalogSidebarProps) {
         }
       />
     </div>
-  );
-}
-
-/**
- * 遞迴分類樹(連結驅動,無 client JS):
- * 頂層永遠顯示;節點為「選取中」或「選取分類的祖先」時展開其子分類。
- * 深度由資料決定(上限見 CATEGORY_MAX_DEPTH),縮排逐層遞增。
- */
-function CategoryTreeItems({
-  nodes,
-  base,
-  activeSlug,
-  ancestorIds,
-}: {
-  nodes: CategoryNode[];
-  base: { q?: string; sort?: string };
-  activeSlug?: string;
-  ancestorIds: Set<string> | null;
-}) {
-  return (
-    <>
-      {nodes.map((node) => {
-        const isActive = activeSlug === node.slug;
-        const expanded = node.children.length > 0 && (isActive || (ancestorIds?.has(node.id) ?? false));
-        return (
-          <li key={node.id}>
-            <SidebarLink href={productsUrl({ ...base, category: node.slug })} active={isActive}>
-              {node.name}
-            </SidebarLink>
-            {expanded ? (
-              <ul className="ml-3 mt-0.5 space-y-0.5 border-l border-border pl-2">
-                <CategoryTreeItems
-                  nodes={node.children}
-                  base={base}
-                  activeSlug={activeSlug}
-                  ancestorIds={ancestorIds}
-                />
-              </ul>
-            ) : null}
-          </li>
-        );
-      })}
-    </>
   );
 }
 
