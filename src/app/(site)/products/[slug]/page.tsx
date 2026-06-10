@@ -5,6 +5,7 @@ import { ChevronRight, Info } from "lucide-react";
 import { routes, productsUrl } from "@/config/routes";
 import { siteConfig } from "@/config/site";
 import { fetchProductBySlug, fetchRelatedProducts } from "@/lib/catalog/queries";
+import { categoryPathById, fetchAllCategories } from "@/lib/catalog/categories";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { SpecTable } from "@/components/catalog/spec-table";
 import { PriceDisplay } from "@/components/catalog/price-display";
@@ -41,6 +42,10 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   if (!product) notFound();
 
   const related = await fetchRelatedProducts(product);
+  // 完整分類路徑(快取小表),麵包屑顯示頂層 → 商品所屬分類
+  const categoryPath = product.category
+    ? categoryPathById(await fetchAllCategories(), product.category.id)
+    : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
@@ -53,14 +58,14 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
         <Link href={routes.products} className="hover:text-primary">
           商品目錄
         </Link>
-        {product.category ? (
-          <>
+        {(categoryPath ?? []).map((c) => (
+          <span key={c.id} className="flex items-center gap-1">
             <ChevronRight className="size-3" aria-hidden />
-            <Link href={productsUrl({ category: product.category.slug })} className="hover:text-primary">
-              {product.category.name}
+            <Link href={productsUrl({ category: c.slug })} className="hover:text-primary">
+              {c.name}
             </Link>
-          </>
-        ) : null}
+          </span>
+        ))}
         <ChevronRight className="size-3" aria-hidden />
         <span className="text-foreground">{product.name}</span>
       </nav>

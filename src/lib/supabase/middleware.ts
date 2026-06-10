@@ -14,6 +14,19 @@ type CookieToSet = { name: string; value: string; options?: CookieOptions };
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
   let supabaseResponse = NextResponse.next({ request });
 
+  const path = request.nextUrl.pathname;
+  const isLoginPage = path === routes.admin.login;
+
+  // 完全沒有 Supabase auth cookie(從未登入):不打 Auth API,直接處理
+  const hasAuthCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
+  if (!hasAuthCookie) {
+    if (isLoginPage) return supabaseResponse;
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = routes.admin.login;
+    loginUrl.search = "";
+    return NextResponse.redirect(loginUrl);
+  }
+
   const { url, anonKey } = getSupabaseEnv();
   const supabase = createServerClient(url, anonKey, {
     cookies: {
@@ -33,9 +46,6 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const path = request.nextUrl.pathname;
-  const isLoginPage = path === routes.admin.login;
 
   if (!user && !isLoginPage) {
     const loginUrl = request.nextUrl.clone();

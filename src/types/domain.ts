@@ -26,6 +26,20 @@ export interface CategoryNode extends CategoryRow {
   children: CategoryNode[];
 }
 
+/** 攤平後的分類選項(後台下拉等用;depth 0 = 頂層) */
+export interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+  depth: number;
+}
+
+/**
+ * 分類樹深度上限(1 = 頂層,對標廣華電子最深 4 層)。
+ * 與 migration 0002 的 check_category_depth() trigger 同步,修改其一必須同步另一處。
+ */
+export const CATEGORY_MAX_DEPTH = 4;
+
 /** 報價車品項(localStorage 與 context 共用) */
 export interface QuoteCartItem {
   productId: string;

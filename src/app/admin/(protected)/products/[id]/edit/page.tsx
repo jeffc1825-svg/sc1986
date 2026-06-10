@@ -6,6 +6,7 @@ import { routes } from "@/config/routes";
 import { ProductForm } from "@/components/admin/product-form";
 import { ProductImages } from "@/components/admin/product-images";
 import { ProductStatusBadge } from "@/components/admin/status-badges";
+import { buildCategoryTree, flattenCategoryTree } from "@/lib/catalog/categories";
 import type { BrandRow, CategoryRow, ProductImageRow, ProductRow, ProductSpecRow } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -63,20 +64,9 @@ export default async function AdminProductEditPage({
           product={p}
           specs={(specs ?? []) as ProductSpecRow[]}
           brands={(brands ?? []) as BrandRow[]}
-          categories={sortCategories((categories ?? []) as CategoryRow[])}
+          categories={flattenCategoryTree(buildCategoryTree((categories ?? []) as CategoryRow[]))}
         />
       </div>
     </div>
   );
-}
-
-function sortCategories(rows: CategoryRow[]): CategoryRow[] {
-  const tops = rows.filter((r) => !r.parent_id);
-  const result: CategoryRow[] = [];
-  for (const top of tops) {
-    result.push(top);
-    result.push(...rows.filter((r) => r.parent_id === top.id));
-  }
-  result.push(...rows.filter((r) => !result.includes(r)));
-  return result;
 }

@@ -64,11 +64,23 @@ export async function importCsvAction(_prev: ActionState, formData: FormData): P
     brandMap.set(b.name.toLowerCase(), b.id);
     brandMap.set(b.slug.toLowerCase(), b.id);
   });
-  const categoryMap = new Map<string, string>();
+  // 分類:slug 必唯一;name 在多層分類下可能重複(不同父層同名),重複名稱不允許比對
+  const categorySlugMap = new Map<string, string>();
+  const categoryNameMap = new Map<string, string>();
+  const ambiguousCategoryNames = new Set<string>();
   (categoryRows ?? []).forEach((c) => {
-    categoryMap.set(c.name.toLowerCase(), c.id);
-    categoryMap.set(c.slug.toLowerCase(), c.id);
+    categorySlugMap.set(c.slug.toLowerCase(), c.id);
+    const nameKey = c.name.toLowerCase();
+    if (categoryNameMap.has(nameKey)) ambiguousCategoryNames.add(nameKey);
+    else categoryNameMap.set(nameKey, c.id);
   });
+  const resolveCategory = (value: string): { id: string | null; ambiguous: boolean } => {
+    const key = value.toLowerCase();
+    const bySlug = categorySlugMap.get(key);
+    if (bySlug) return { id: bySlug, ambiguous: false };
+    if (ambiguousCategoryNames.has(key)) return { id: null, ambiguous: true };
+    return { id: categoryNameMap.get(key) ?? null, ambiguous: false };
+  };
 
   const seenSkus = new Set<string>();
   let successCount = 0;
@@ -95,11 +107,20 @@ export async function importCsvAction(_prev: ActionState, formData: FormData): P
         errorMessage = `SKU ${input.sku} 在檔案內重複`;
       } else if (input.brand && !(brandId = brandMap.get(input.brand.toLowerCase()) ?? null)) {
         errorMessage = `品牌「${input.brand}」不存在,請先於後台建立`;
-      } else if (
-        input.category &&
-        !(categoryId = categoryMap.get(input.category.toLowerCase()) ?? null)
-      ) {
-        errorMessage = `分類「${input.category}」不存在,請先於後台建立`;
+      } else if (input.category && (() => {
+        const resolved = resolveCategory(input.category);
+        categoryId = resolved.id;
+        if (resolved.ambiguous) {
+          errorMessage = `分類名稱「${input.category}」對應多個分類,請改填分類 slug`;
+          return true;
+        }
+        if (!categoryId) {
+          errorMessage = `分類「${input.category}」不存在,請先於後台建立`;
+          return true;
+        }
+        return false;
+      })()) {
+        // 錯誤訊息已於上方設定
       } else {
         const { data: existing } = await supabase
           .from("products")

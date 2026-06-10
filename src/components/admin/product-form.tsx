@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useActionState } from "react";
 import { AlertCircle, CheckCircle2, Plus, Trash2 } from "lucide-react";
-import type { BrandRow, CategoryRow, ProductRow, ProductSpecRow } from "@/types";
+import type { BrandRow, CategoryOption, ProductRow, ProductSpecRow } from "@/types";
 import {
   createProductAction,
   updateProductAction,
@@ -28,7 +28,8 @@ interface ProductFormProps {
   product?: ProductRow;
   specs?: ProductSpecRow[];
   brands: BrandRow[];
-  categories: CategoryRow[];
+  /** 已依樹狀順序攤平、附深度的分類(flattenCategoryTree 產出) */
+  categories: CategoryOption[];
 }
 
 export function ProductForm({ mode, product, specs, brands, categories }: ProductFormProps) {
@@ -97,7 +98,7 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
                   <option value="">(無)</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.parent_id ? `　└ ${c.name}` : c.name}
+                      {c.depth > 0 ? `${"　".repeat(c.depth)}└ ${c.name}` : c.name}
                     </option>
                   ))}
                 </Select>

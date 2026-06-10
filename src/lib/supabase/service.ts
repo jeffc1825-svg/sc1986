@@ -15,5 +15,10 @@ export function createSupabaseServiceClient(): SupabaseClient {
   const { url } = getSupabaseEnv();
   return createClient(url, getServiceRoleKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      // 明確 no-store:避開 Next patched fetch 的快取/tee 串流路徑(vercel/next.js#68319)
+      fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+        fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }

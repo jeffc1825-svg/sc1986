@@ -41,6 +41,7 @@ src/
     quote/success/page.tsx
     about/page.tsx
     api/quote/route.ts           # POST 建立詢價
+    api/categories/route.ts      # GET 公開分類樹(快取)
     admin/login/page.tsx
     admin/(protected)/
       layout.tsx                 # fail-closed requireAdmin
@@ -53,7 +54,7 @@ src/
   lib/
     env.ts                       # 環境變數驗證(fail-closed)
     utils.ts
-    supabase/ (browser.ts server.ts service.ts middleware.ts)
+    supabase/ (browser.ts server.ts service.ts public.ts middleware.ts)
     catalog/ (queries.ts categories.ts)
     quote/ (schema.ts rate-limit.ts)
     admin/ (guard.ts product-actions.ts import-actions.ts quote-actions.ts csv.ts)
@@ -80,6 +81,7 @@ public/ brand/ placeholder-product.svg
 | `/quote`、`/quote/success?ref=` | 報價車、成功頁 |
 | `/about` | 公司與服務說明 |
 | `POST /api/quote` | 建立詢價 |
+| `GET /api/categories` | 公開分類樹 JSON(Header 選單非同步取用;CDN + Data Cache 雙層快取) |
 
 ## 管理路由
 
@@ -92,7 +94,7 @@ enum:`product_price_mode(public_price|quote_only|login_or_quote)`、`product_sto
 | 表 | 重點欄位 |
 | --- | --- |
 | `brands` | name/slug unique、website |
-| `categories` | parent_id 自參照、slug unique、sort_order |
+| `categories` | parent_id 自參照(巢狀,最深 4 層;0002 trigger 防循環與超深,FK on delete restrict)、slug unique、sort_order |
 | `products` | sku/slug unique、brand_id、category_id、short_description、description、ordering_notice、pricing_note、price numeric(12,2)、price_mode、stock_status、status |
 | `product_images` | product_id、storage_path、public_url、alt、sort_order |
 | `product_specs` | product_id、name、value、unit、sort_order |
@@ -107,6 +109,7 @@ enum:`product_price_mode(public_price|quote_only|login_or_quote)`、`product_sto
 ## RLS 與權限
 
 公開(anon):`brands`/`categories` 可讀;`products` 只讀 `status='active'`;`product_images`/`product_specs` 只讀 active 商品的列。公開寫入只透過 RPC,不開放直接 INSERT。
+**公開路徑(型錄/詳情/sitemap/詢價 RPC)一律用 `lib/supabase/public.ts`(無 cookie anon client)**,不可用 cookie-aware client——訪客帶過期 admin cookie 時每個請求都觸發 token refresh,曾導致 Auth API 429(over_request_rate_limit)。所有 Supabase client 的 fetch 已強制 `cache: 'no-store'`,避開 Next patched fetch 在 Node 20.16+/22 的 `transformAlgorithm` 串流 bug(vercel/next.js#68319)。
 管理(authenticated + `is_admin()`):全表讀寫。`is_admin()` = `admin_users` 存在 `auth_user_id = auth.uid()` 且 `is_active`,SECURITY DEFINER。
 Service role:只在伺服器端、且呼叫前已通過 `requireAdmin()`(或系統內部用途如通知狀態回寫);絕不進瀏覽器 bundle、log、錯誤畫面。
 
@@ -120,6 +123,17 @@ Service role:只在伺服器端、且呼叫前已通過 `requireAdmin()`(或系�
 4. 產生 `reference_code`,主檔+品項同交易寫入。
 
 `/api/quote` 在 RPC 之外另做:Zod 解析、body ≤ 32KB、IP rate limit(每分鐘 5 次,記憶體式,文件註明多 instance 限制)、honeypot 欄位 `website` 必須為空、成功後非同步寄信並回寫 `notification_status/notification_error`(用 service client;寄信失敗不可吞掉)。
+
+## 分類(巢狀)與快取
+
+- 結構:adjacency list(`categories.parent_id`),**最深 4 層**(對標廣華電子)。上限由 migration 0002 的 `check_category_depth()` trigger 強制(含防循環、搬移子樹檢查),與 `src/types/domain.ts` 的 `CATEGORY_MAX_DEPTH` 同步。
+- 維護原則:不引入 materialized path / closure table;分類是小表,全量讀取後在應用層組樹(`buildCategoryTree`)、算子孫(`categoryDescendantIds`)、組麵包屑(`categoryPathById/BySlug`)。
+- 快取(雙層):
+  1. 資料層:`fetchAllCategories` 為**自製記憶體 TTL 快取**(5 分鐘、in-flight 去重、失敗不快取),每個 server instance 一份;日後若有後台分類 CRUD,mutation 後呼叫 `invalidateCategoriesCache()`(其他 instance 等 TTL 到期)。
+  2. HTTP 層:`GET /api/categories` 回傳 `Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=86400`,由 CDN/瀏覽器吸收流量。
+- **禁用 `unstable_cache` 包 Supabase 查詢**:其 fetch 攔截在 Node 20.16+/22 觸發 `controller[kState].transformAlgorithm is not a function`(vercel/next.js#68319、#75995),2026-06-10 已踩過,改記憶體快取後解決。
+- Header 分類選單(`CategoryNav`)為 client component,掛載後非同步 fetch `/api/categories`;新增分類最慢 5 分鐘自動出現在選單,無須重新部署。選單載入失敗只隱藏分類連結,不阻斷頁面(目錄頁側欄仍可瀏覽)。
+- 分類讀取走 `lib/supabase/public.ts`(無 cookie anon client,僅限公開資料),避免 cookie 耦合、可跨請求共用快取。
 
 ## 商品搜尋(第一階段)
 

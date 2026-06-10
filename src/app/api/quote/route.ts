@@ -1,5 +1,5 @@
 import { NextResponse, after, type NextRequest } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { quoteRequestSchema, type QuoteApiResponse } from "@/lib/quote/schema";
 import { checkRateLimit } from "@/lib/quote/rate-limit";
@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
   }
   const { contact, items } = parsed.data;
 
-  // 4) 原子寫入(RPC 內部重查 active 商品並快照 sku/name)
-  const supabase = await createSupabaseServerClient();
+  // 4) 原子寫入(RPC 內部重查 active 商品並快照 sku/name;匿名詢價,無 cookie anon client)
+  const supabase = createSupabasePublicClient();
   const { data, error } = await supabase.rpc("create_quote_request", {
     p_contact: {
       customer_name: contact.customer_name,

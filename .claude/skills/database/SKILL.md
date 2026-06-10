@@ -18,15 +18,18 @@ Schema 全貌見 `docs/02-architecture.md`;SQL 真相來源是 `supabase/migrati
 6. 詢價寫入只用 `create_quote_request` RPC:伺服器重查 active 商品、快照 sku/name、主檔+品項同交易;任何品項無效就整筆失敗。
 7. `quote_requests.admin_note` 與 `notification_*` 不得被 anon 讀取(本來就無 anon SELECT policy,不要新開)。
 8. 應用層查詢規則:目錄頁用 `range()` 分頁 + `count:'exact'`;搜尋用 `or(ilike...)` 比對 sku/name/short_description/description;分類篩選先在記憶體算 descendant ids 再 `in()`。
+9. 分類為巢狀(adjacency list),**最深 4 層**:由 0002 的 `check_category_depth()` trigger 強制(防循環、防超深、parent FK on delete restrict),與 `CATEGORY_MAX_DEPTH`(types/domain.ts)同步。分類讀取一律走 `fetchAllCategories()`(記憶體 TTL 快取 5 分鐘);異動分類後呼叫 `invalidateCategoriesCache()` 或等 TTL 失效。**禁止用 `unstable_cache` 包 Supabase 查詢**(Node 20.16+/22 會炸 `transformAlgorithm is not a function`,vercel/next.js#68319)。
 
 ## 客戶端選用
 
 | 情境 | 用哪個 |
 | --- | --- |
-| 公開頁讀 active 商品 | `lib/supabase/server.ts`(anon, cookie-aware) |
-| 公開詢價寫入 | anon client 呼叫 RPC |
-| 後台讀寫(已 requireAdmin) | server client(authenticated,走 admin RLS) |
+| 公開頁讀 active 商品、sitemap、分類 | `lib/supabase/public.ts`(anon、**無 cookie**) |
+| 公開詢價寫入(RPC) | `lib/supabase/public.ts` |
+| 後台讀寫(已 requireAdmin)、登入流程 | `lib/supabase/server.ts`(cookie-aware,走 admin RLS) |
 | Storage 上傳/刪除、通知狀態回寫 | `lib/supabase/service.ts`(service role,**只能在 server,呼叫前先 requireAdmin 或系統內部流程**) |
+
+公開路徑**禁用 cookie-aware client**:訪客帶過期 admin cookie 時,每個請求(含 prefetch)都會觸發 token refresh,曾打爆 Auth API(429 over_request_rate_limit)。三個 client 都已強制 `fetch(..., { cache: 'no-store' })` 繞開 Next patched fetch 的串流 bug,新增 client 時必須照做。
 
 ## RLS 模式範本
 

@@ -3,16 +3,12 @@ import Link from "next/link";
 import { Clock, Phone } from "lucide-react";
 import { routes } from "@/config/routes";
 import { siteConfig } from "@/config/site";
-import { buildCategoryTree, fetchAllCategories } from "@/lib/catalog/categories";
 import { SearchForm } from "@/components/site/search-form";
 import { QuoteCartButton } from "@/components/site/quote-cart-button";
 import { CategoryNav } from "@/components/site/category-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 
-export async function SiteHeader() {
-  const categories = await fetchAllCategories();
-  const tree = buildCategoryTree(categories);
-
+export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 shadow-sm">
       {/* 頂部資訊列 */}
@@ -61,7 +57,7 @@ export async function SiteHeader() {
         </div>
       </div>
 
-      <CategoryNav tree={tree} />
+      <CategoryNav />
     </header>
   );
 }

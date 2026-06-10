@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/public";
 import {
   CATALOG_PAGE_SIZE,
   type BrandRow,
@@ -35,7 +35,7 @@ export async function fetchCatalog(query: CatalogQuery): Promise<{
   /** 分類 slug 無效時為 true(顯示找不到分類) */
   unknownCategory: boolean;
 }> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
 
   let categoryIds: string[] | null = null;
   let unknownCategory = false;
@@ -108,7 +108,7 @@ export async function fetchCatalog(query: CatalogQuery): Promise<{
 
 /** 商品詳情(僅 active;RLS 已限制,此處再防一層) */
 export async function fetchProductBySlug(slug: string): Promise<ProductDetail | null> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("products")
     .select(
@@ -132,7 +132,7 @@ export async function fetchProductBySlug(slug: string): Promise<ProductDetail | 
 
 /** 相關商品:同分類優先,不足補同品牌(真實查詢,不用示範資料) */
 export async function fetchRelatedProducts(product: ProductDetail, limit = 4): Promise<ProductListItem[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   const collected: RawListRow[] = [];
 
   if (product.category_id) {
@@ -165,7 +165,7 @@ export async function fetchRelatedProducts(product: ProductDetail, limit = 4): P
 
 /** 首頁:最新上架 */
 export async function fetchNewProducts(limit = 8): Promise<ProductListItem[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("products")
     .select(LIST_SELECT)
@@ -177,7 +177,7 @@ export async function fetchNewProducts(limit = 8): Promise<ProductListItem[]> {
 }
 
 export async function fetchBrands(): Promise<BrandRow[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   const { data, error } = await supabase.from("brands").select("*").order("name");
   if (error) throw new Error(`讀取品牌失敗:${error.message}`);
   return (data ?? []) as BrandRow[];
@@ -185,7 +185,7 @@ export async function fetchBrands(): Promise<BrandRow[]> {
 
 /** 首頁統計(現貨品項/商品筆數,廣華式 footer 數字) */
 export async function fetchCatalogStats(): Promise<{ active: number; inStock: number }> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   const [activeRes, stockRes] = await Promise.all([
     supabase.from("products").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase

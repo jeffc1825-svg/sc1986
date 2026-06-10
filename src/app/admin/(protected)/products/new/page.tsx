@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/admin/guard";
 import { routes } from "@/config/routes";
 import { ProductForm } from "@/components/admin/product-form";
+import { buildCategoryTree, flattenCategoryTree } from "@/lib/catalog/categories";
 import type { BrandRow, CategoryRow } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -28,21 +29,8 @@ export default async function AdminProductNewPage() {
       <ProductForm
         mode="create"
         brands={(brands ?? []) as BrandRow[]}
-        categories={sortCategories((categories ?? []) as CategoryRow[])}
+        categories={flattenCategoryTree(buildCategoryTree((categories ?? []) as CategoryRow[]))}
       />
     </div>
   );
-}
-
-/** 父分類在前、子分類緊隨其後 */
-function sortCategories(rows: CategoryRow[]): CategoryRow[] {
-  const tops = rows.filter((r) => !r.parent_id);
-  const result: CategoryRow[] = [];
-  for (const top of tops) {
-    result.push(top);
-    result.push(...rows.filter((r) => r.parent_id === top.id));
-  }
-  // 殘留(父分類遺失)補在最後
-  result.push(...rows.filter((r) => !result.includes(r)));
-  return result;
 }

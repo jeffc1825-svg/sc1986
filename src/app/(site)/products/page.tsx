@@ -1,13 +1,19 @@
+import * as React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PackageOpen } from "lucide-react";
+import { ChevronRight, PackageOpen } from "lucide-react";
 import { productsUrl } from "@/config/routes";
 import { fetchBrands, fetchCatalog } from "@/lib/catalog/queries";
-import { buildCategoryTree, fetchAllCategories } from "@/lib/catalog/categories";
+import {
+  buildCategoryTree,
+  categoryPathBySlug,
+  fetchAllCategories,
+  findNodeBySlug,
+} from "@/lib/catalog/categories";
 import { ProductGrid } from "@/components/catalog/product-card";
 import { CatalogSidebar, MobileFilterToggle } from "@/components/catalog/catalog-sidebar";
 import { Pagination } from "@/components/ui/pagination";
-import type { CatalogQuery } from "@/types";
+import type { CategoryNode, CatalogQuery } from "@/types";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -62,15 +68,41 @@ export default async function ProductsPage({
     fetchBrands(),
   ]);
   const tree = buildCategoryTree(categories);
-  const currentCategory = query.category
-    ? categories.find((c) => c.slug === query.category)
-    : undefined;
+  const categoryPath = query.category ? categoryPathBySlug(categories, query.category) : null;
+  const currentCategory = categoryPath ? categoryPath[categoryPath.length - 1] : undefined;
+  const currentNode = query.category ? findNodeBySlug(tree, query.category)?.node ?? null : null;
+  // 廣華式分類瀏覽:目錄首頁列頂層分類,分類頁列其子分類
+  const childCategories: CategoryNode[] = currentNode
+    ? currentNode.children
+    : !query.category && !query.q
+      ? tree
+      : [];
 
   const sidebar = <CatalogSidebar tree={tree} brands={brands} query={query} />;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       <div className="mb-4">
+        {categoryPath ? (
+          <nav
+            aria-label="麵包屑"
+            className="mb-1.5 flex flex-wrap items-center gap-1 text-xs text-muted-foreground"
+          >
+            <Link href={productsUrl({ q: query.q })} className="hover:text-primary">
+              全部商品
+            </Link>
+            {categoryPath.slice(0, -1).map((c) => (
+              <React.Fragment key={c.id}>
+                <ChevronRight className="size-3" aria-hidden />
+                <Link href={productsUrl({ q: query.q, category: c.slug })} className="hover:text-primary">
+                  {c.name}
+                </Link>
+              </React.Fragment>
+            ))}
+            <ChevronRight className="size-3" aria-hidden />
+            <span className="text-foreground">{currentCategory?.name}</span>
+          </nav>
+        ) : null}
         <h1 className="text-2xl font-bold text-foreground">
           {currentCategory ? currentCategory.name : query.q ? `搜尋「${query.q}」` : "商品目錄"}
         </h1>
@@ -78,6 +110,27 @@ export default async function ProductsPage({
           <p className="mt-1 text-sm text-muted-foreground">{currentCategory.description}</p>
         ) : null}
       </div>
+
+      {childCategories.length > 0 ? (
+        <section aria-label="子分類" className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {childCategories.map((child) => (
+            <Link
+              key={child.id}
+              href={productsUrl({ q: query.q, sort: query.sort, category: child.slug })}
+              className="group rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="text-sm font-medium text-foreground group-hover:text-primary">
+                {child.name}
+              </span>
+              {child.children.length > 0 ? (
+                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                  {child.children.map((g) => g.name).join("、")}
+                </span>
+              ) : null}
+            </Link>
+          ))}
+        </section>
+      ) : null}
 
       <div className="mb-4 lg:hidden">
         <MobileFilterToggle>{sidebar}</MobileFilterToggle>

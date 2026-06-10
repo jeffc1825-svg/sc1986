@@ -6,14 +6,20 @@ type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
 /**
  * 伺服器端 Supabase client(anon key + cookie session)。
- * - 公開頁讀取 active 商品(RLS 生效)
- * - 後台讀寫(登入後 RLS 依 is_admin() 放行)
+ * - 後台讀寫(登入後 RLS 依 is_admin() 放行)與 /api/quote RPC
+ * - 注意:公開型錄讀取請改用 lib/supabase/public.ts(無 cookie),
+ *   避免訪客/過期 session 觸發 token refresh(曾因此打爆 Auth API 429)
  */
 export async function createSupabaseServerClient() {
   const { url, anonKey } = getSupabaseEnv();
   const cookieStore = await cookies();
 
   return createServerClient(url, anonKey, {
+    global: {
+      // 明確 no-store:避開 Next patched fetch 的快取/tee 串流路徑(vercel/next.js#68319)
+      fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+        fetch(input, { ...init, cache: "no-store" }),
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();

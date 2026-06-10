@@ -17,6 +17,7 @@ export const routes = {
 
   api: {
     quote: "/api/quote",
+    categories: "/api/categories",
   },
 
   admin: {
