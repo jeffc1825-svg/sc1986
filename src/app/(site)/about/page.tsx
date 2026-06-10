@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Clock, Mail, MapPin, Phone, Printer } from "lucide-react";
+import { Clock, Facebook, Mail, MapPin, Phone, Printer } from "lucide-react";
 import { routes } from "@/config/routes";
 import { siteConfig } from "@/config/site";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +64,17 @@ export default function AboutPage() {
               <li className="flex items-center gap-2">
                 <MapPin className="size-4 text-primary" aria-hidden />
                 {siteConfig.company.address}
+              </li>
+              <li className="flex items-center gap-2">
+                <Facebook className="size-4 text-primary" aria-hidden />
+                <a
+                  href={siteConfig.links.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  Facebook 粉絲專頁
+                </a>
               </li>
               <li className="flex items-start gap-2 sm:col-span-2">
                 <Clock className="mt-0.5 size-4 text-primary" aria-hidden />

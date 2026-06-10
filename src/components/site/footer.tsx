@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Mail, MapPin, Phone, Printer } from "lucide-react";
+import { Clock, Facebook, Mail, MapPin, Phone, Printer } from "lucide-react";
 import { routes, productsUrl } from "@/config/routes";
 import { siteConfig } from "@/config/site";
 
@@ -94,6 +94,17 @@ export function SiteFooter() {
                   </span>
                 ))}
               </span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Facebook className="size-3.5 shrink-0" aria-hidden />
+              <a
+                href={siteConfig.links.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary"
+              >
+                Facebook 粉絲專頁
+              </a>
             </li>
           </ul>
         </div>
