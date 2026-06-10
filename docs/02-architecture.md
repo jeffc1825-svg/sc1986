@@ -140,7 +140,11 @@ SUPABASE_SERVICE_ROLE_KEY=
 RESEND_API_KEY=
 QUOTE_NOTIFICATION_EMAIL=
 QUOTE_NOTIFICATION_FROM=
+# 僅本機建庫工具使用(pnpm db:apply),勿部署到 Vercel
+SUPABASE_DB_URL=
 ```
+
+建庫與管理者建立皆免開 Dashboard:`pnpm db:apply`(migration runner,`scripts/db-apply.mjs`,以 `_migrations` 表追蹤)、`pnpm admin:create`(`scripts/create-admin.mjs`,service role 建 Auth 使用者 + upsert `admin_users`)。
 
 正式環境缺必要變數 → 直接報錯(fail-closed),不得悄悄切換示範資料。開發環境允許缺 RESEND(通知記為 `skipped`)。
 

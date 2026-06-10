@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:apply": "node scripts/db-apply.mjs",
+    "db:apply:seed": "node scripts/db-apply.mjs --with-seed",
+    "db:seed": "node scripts/db-apply.mjs --seed-only",
+    "admin:create": "node scripts/create-admin.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
@@ -19,6 +23,7 @@
     "next": "15.3.3",
     "next-themes": "^0.4.6",
     "papaparse": "^5.5.2",
+    "postgres": "^3.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "server-only": "^0.0.1",

@@ -6,6 +6,7 @@ description: SC1986 Supabase 資料庫工作規範。新增/修改 migration、R
 # SC1986 資料庫技能
 
 Schema 全貌見 `docs/02-architecture.md`;SQL 真相來源是 `supabase/migrations/`。
+套用方式:`pnpm db:apply`(scripts/db-apply.mjs,需 `.env.local` 的 `SUPABASE_DB_URL`,以 `_migrations` 表追蹤已套用檔案);測試資料 `pnpm db:apply:seed`;管理者 `pnpm admin:create`。不要叫使用者去 Dashboard 貼 SQL。
 
 ## 硬規則
 

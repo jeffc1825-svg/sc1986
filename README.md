@@ -8,24 +8,28 @@ RFQ 詢價優先的工業電子材料型錄網站。客戶免登入瀏覽商品�
 
 ```bash
 pnpm install
-cp .env.example .env.local   # 填入 Supabase 專案的 URL 與 keys
-pnpm dev                     # http://localhost:3000
+cp .env.example .env.local   # 填入 Supabase URL / keys / SUPABASE_DB_URL
+pnpm db:apply:seed           # 自動建立資料庫 + 測試資料(78 筆商品),免開瀏覽器
+pnpm admin:create -- --email you@example.com --password 'StrongPass123!' --name '管理者'
+pnpm dev                     # http://localhost:3000;後台 /admin/login
 ```
 
-Supabase 初始化(新專案):
+Supabase 初始化全程不需進 Dashboard 貼 SQL:
 
-1. 在 Supabase SQL Editor 依序執行 `supabase/migrations/*.sql`
-2. 開發環境可再執行 `supabase/seed.sql` 取得示範分類/品牌/商品
-3. Authentication 建立管理者帳號後:
-   `insert into admin_users (auth_user_id, name, role, is_active) values ('<auth-uuid>', '管理者', 'owner', true);`
-4. 後台入口:`/admin/login`
+1. `SUPABASE_DB_URL` 填資料庫連線字串(Dashboard → Connect → Session pooler;anon/service key 無法建表)
+2. `pnpm db:apply` 套用 `supabase/migrations/*.sql`(以 `_migrations` 表追蹤,重跑自動跳過)
+3. `pnpm db:apply:seed` 同時灌入開發測試資料;**正式環境只跑 `pnpm db:apply`,禁止灌 seed**
+4. `pnpm admin:create` 以 service key 建立 Auth 使用者並寫入 `admin_users`
 
 ## 常用指令
 
 ```bash
 pnpm dev / build / start
-pnpm typecheck   # tsc --noEmit
+pnpm typecheck     # tsc --noEmit
 pnpm lint
+pnpm db:apply      # 套用 migrations(冪等)
+pnpm db:apply:seed # migrations + 測試資料(products 已有資料會跳過;--force-seed 重灌)
+pnpm admin:create  # 建立管理者(--email/--password/--name/--role)
 ```
 
 ## 文件

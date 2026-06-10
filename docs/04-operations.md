@@ -2,13 +2,12 @@
 
 ## 服務開通順序
 
-### 1. Supabase
-1. 建立專案(區域選 Tokyo/Singapore),記下 URL 與 anon/service_role key。
-2. 依序執行 `supabase/migrations/*.sql`(SQL Editor 或 `supabase db push`)。
-3. Storage 確認 bucket `product-images`(migration 已建立,public read)。
-4. Authentication → 建立管理者 Email 使用者,複製其 UUID。
-5. `insert into admin_users (auth_user_id, name, role, is_active) values ('<uuid>', '管理者', 'owner', true);`
-6. 開發環境才執行 `supabase/seed.sql`;**正式環境禁止跑 seed**。
+### 1. Supabase(全程免開 SQL Editor)
+1. 建立專案(區域選 Tokyo/Singapore),記下 URL、anon/service_role key 與資料庫密碼。
+2. `.env.local` 填入四個值(含 `SUPABASE_DB_URL`,用 Connect → Session pooler 連線字串)。
+3. `pnpm db:apply` 自動套用 `supabase/migrations/*.sql`(`_migrations` 表追蹤、可重跑)並建立 Storage bucket `product-images`。
+4. `pnpm admin:create -- --email <信箱> --password <強密碼> --name <名稱>` 建立管理者(Auth 使用者 + `admin_users`)。
+5. 開發環境才執行 `pnpm db:apply:seed`(78 筆測試商品);**正式環境禁止灌 seed**。
 
 ### 2. Vercel
 1. Import Git repo,Framework 自動偵測 Next.js,套件管理 pnpm。

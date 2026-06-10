@@ -81,7 +81,8 @@
 ## Stage 6 — 業主審查與真實資料上線(人工)🔶
 
 - [ ] 業主審查 UI、文案、流程(`src/config/site.ts` 的統編/電話/地址/信箱為占位,需更換)
-- [ ] 建立正式 Supabase 專案 → 跑 `supabase/migrations/0001_init.sql` → 建管理者(見 README)
+- [x] 開發 Supabase 專案連線資料已設定於 `.env.local`;建庫改為一鍵指令 `pnpm db:apply:seed` + `pnpm admin:create`(免開瀏覽器,待補 `SUPABASE_DB_URL` 後在本機執行)
+- [ ] 正式環境:`pnpm db:apply`(不灌 seed)→ `pnpm admin:create` 建正式管理者
 - [ ] 開發環境驗證種子資料流程後,正式環境匯入真實且已授權的商品(CSV → 草稿 → 審核上架)
 - [ ] Vercel 環境變數、網域、Cloudflare DNS、Resend 寄件網域驗證
 - [ ] 依 `.claude/skills/qa-release/` 完成權限/詢價/匯入/雙主題/RWD 端對端 QA
@@ -105,3 +106,4 @@
 | 2026-06-10 | Stage 3 | 報價車、/api/quote(原子 RPC+防濫用)、成功頁、Resend 通知與狀態回寫完成。 |
 | 2026-06-10 | Stage 4 | 登入與 fail-closed 守門、儀表板、商品 CRUD+圖片+批量、CSV 匯出入、詢價管理完成。 |
 | 2026-06-10 | Stage 5 | SEO/sitemap/robots、typecheck+lint+build 全綠、fail-closed 煙霧測試通過;交付業主審查(Stage 6)。 |
+| 2026-06-10 | Stage 6 前置 | 新增免瀏覽器建庫工具:`pnpm db:apply`(migration runner)、`pnpm admin:create`(建管理者);seed 擴充至 78 筆測試商品(+52,含 draft/archived 測試品);SQL 經 libpg_query 解析驗證、SKU/slug 無重複;`.env.local` 已寫入業主提供的 Supabase 連線金鑰(待補 DB 密碼)。 |
