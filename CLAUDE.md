@@ -11,7 +11,7 @@ SC1986 是「RFQ 詢價型工業電子材料商城」。大量 SKU 型錄 + 部�
 
 ## 技術棧(已核准,勿擅自更換)
 
-- Next.js 15 App Router + React 19 + TypeScript strict
+- Next.js 16 App Router + React 19 + TypeScript strict
 - Tailwind CSS v4(CSS-first,`src/app/globals.css` 內 `@theme`)
 - 自製 shadcn 風格元件於 `src/components/ui/`(無 Radix 依賴)
 - Supabase:PostgreSQL / Auth / Storage / RLS

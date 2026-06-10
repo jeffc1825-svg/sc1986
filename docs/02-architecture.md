@@ -7,7 +7,7 @@
    │
 Cloudflare(DNS / HTTPS / CDN / 基礎防護)
    │
-Vercel(Next.js 15 App Router:前台 + /admin + Route Handlers + Server Actions)
+Vercel(Next.js 16 App Router:前台 + /admin + Route Handlers + Server Actions)
    │
 Supabase(PostgreSQL / Auth / Storage / RLS / RPC)
    └ Resend(詢價通知信)
@@ -17,7 +17,7 @@ Supabase(PostgreSQL / Auth / Storage / RLS / RPC)
 
 | 項目 | 選擇                                                                    |
 | ---- | ----------------------------------------------------------------------- |
-| 框架 | Next.js 15(App Router)、React 19                                        |
+| 框架 | Next.js 16(App Router、Turbopack build)、React 19.2                     |
 | 語言 | TypeScript 5 strict                                                     |
 | 樣式 | Tailwind CSS v4(CSS-first `@theme`,無 tailwind.config)                  |
 | UI   | 自製 shadcn 風格元件 `src/components/ui/`,icon 用 lucide-react,無 Radix |
