@@ -1,6 +1,6 @@
 # CLAUDE.md — SC1986 工作指引
 
-SC1986 是「RFQ 詢價型工業電子材料商城」。經營模式對標廣華電子(shop.cpu.com.tw):大量 SKU 型錄 + 部分公開價 + 部分詢價,第一階段交易終點是「建立可追蹤的詢價案件」,不是線上付款。
+SC1986 是「RFQ 詢價型工業電子材料商城」。大量 SKU 型錄 + 部分公開價 + 部分詢價,第一階段交易終點是「建立可追蹤的詢價案件」,不是線上付款。
 
 ## 開工流程
 
@@ -24,7 +24,7 @@ SC1986 是「RFQ 詢價型工業電子材料商城」。經營模式對標廣華
 - 訪客免登入可送詢價;`/admin` 全部功能必須登入且通過 `admin_users` 檢查。
 - CSV 匯入、AI 產生或外部整理的商品,一律先建立為 `draft`,人工審核後才能 `active`。
 - 公開價格顯示只依 `price_mode` 判斷,絕不能只看 `price` 是否為 null。
-- 不複製競品(含廣華)的商品文案與圖片;只能參考其版面與經營模式。
+- 不複製競品的商品文案與圖片;只能參考其版面與經營模式。
 
 ## 不可違反的工程規則
 
@@ -47,13 +47,13 @@ pnpm typecheck && pnpm lint && pnpm build
 
 ## 文件地圖
 
-| 檔案 | 內容 |
-| --- | --- |
-| `PLAN.md` | 階段拆分、勾選清單、進度紀錄(唯一進度真相來源) |
-| `docs/01-business.md` | 業務定位、使用者、流程、範圍邊界 |
-| `docs/02-architecture.md` | 架構、資料模型、RLS、API、環境變數 |
-| `docs/03-design-system.md` | 品牌、design token、版型模板(廣華式佈局) |
-| `docs/04-operations.md` | 部署、備份、驗收清單 |
-| `.claude/skills/*` | ui-design / database / qa-release 三個工作技能 |
+| 檔案                       | 內容                                           |
+| -------------------------- | ---------------------------------------------- |
+| `PLAN.md`                  | 階段拆分、勾選清單、進度紀錄(唯一進度真相來源) |
+| `docs/01-business.md`      | 業務定位、使用者、流程、範圍邊界               |
+| `docs/02-architecture.md`  | 架構、資料模型、RLS、API、環境變數             |
+| `docs/03-design-system.md` | 品牌、design token、版型模板                   |
+| `docs/04-operations.md`    | 部署、備份、驗收清單                           |
+| `.claude/skills/*`         | ui-design / database / qa-release 三個工作技能 |
 
 架構、資料模型、外部服務或產品範圍改變時,必須同步更新上述文件。

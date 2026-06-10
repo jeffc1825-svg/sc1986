@@ -1,6 +1,6 @@
 ---
 name: ui-design
-description: SC1986 前台與後台 UI 開發規範。新增或修改任何頁面、元件、樣式、主題前必讀。涵蓋設計 token、廣華式版型模板、商品卡規格、light/dark 規則與文案語氣。
+description: SC1986 前台與後台 UI 開發規範。新增或修改任何頁面、元件、樣式、主題前必讀。涵蓋設計 token、商品卡規格、light/dark 規則與文案語氣。
 ---
 
 # SC1986 UI 設計技能
@@ -17,7 +17,7 @@ description: SC1986 前台與後台 UI 開發規範。新增或修改任何頁�
 6. 表單欄位:`<Label>` + 必填 `<span className="text-destructive">*</span>` + 錯誤訊息 `text-xs text-destructive`。
 7. Client component 最小化:只有需要 state/事件的葉子元件標 `'use client'`,頁面骨架保持 Server Component。
 
-## 版型速查(廣華式)
+## 版型速查
 
 - 容器:`mx-auto max-w-7xl px-4`;後台內容 `max-w-6xl`。
 - Header 順序:Logo → 搜尋框(flex-1, max-w-xl)→ 報價車按鈕(badge 數量)→ 主題切換。sticky top-0 z-40。

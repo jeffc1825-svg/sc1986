@@ -7,7 +7,7 @@ import { PriceDisplay } from "@/components/catalog/price-display";
 import { StockBadge } from "@/components/catalog/stock-badge";
 import { AddToQuoteButton } from "@/components/catalog/add-to-quote-button";
 
-/** 商品卡 — 所有商品列表共用(廣華式:圖、SKU、品名、價格、現貨 badge) */
+/** 商品卡 — 所有商品列表共用(圖、SKU、品名、價格、現貨 badge) */
 export function ProductCard({ product }: { product: ProductListItem }) {
   const href = routes.productDetail(product.slug);
   const imgSrc = product.cover_image?.public_url || assets.productPlaceholder;
@@ -15,7 +15,10 @@ export function ProductCard({ product }: { product: ProductListItem }) {
 
   return (
     <div className="group flex flex-col rounded-lg border border-border bg-card p-3 transition-shadow hover:shadow-md">
-      <Link href={href} className="relative block overflow-hidden rounded-md bg-white">
+      <Link
+        href={href}
+        className="relative block overflow-hidden rounded-md bg-white"
+      >
         <div className="relative aspect-square">
           <Image
             src={imgSrc}
@@ -25,11 +28,16 @@ export function ProductCard({ product }: { product: ProductListItem }) {
             className="object-contain p-2 transition-transform group-hover:scale-105"
           />
         </div>
-        <StockBadge status={product.stock_status} className="absolute left-1.5 top-1.5" />
+        <StockBadge
+          status={product.stock_status}
+          className="absolute left-1.5 top-1.5"
+        />
       </Link>
 
       <div className="mt-2 flex flex-1 flex-col gap-1">
-        <span className="font-mono text-xs text-muted-foreground">{product.sku}</span>
+        <span className="font-mono text-xs text-muted-foreground">
+          {product.sku}
+        </span>
         <Link
           href={href}
           className="line-clamp-2 min-h-10 text-sm leading-5 text-foreground transition-colors group-hover:text-primary"
@@ -39,7 +47,9 @@ export function ProductCard({ product }: { product: ProductListItem }) {
         <div className="mt-auto flex items-end justify-between pt-1">
           <PriceDisplay priceMode={product.price_mode} price={product.price} />
           {product.brand ? (
-            <span className="truncate pl-2 text-xs text-muted-foreground">{product.brand.name}</span>
+            <span className="truncate pl-2 text-xs text-muted-foreground">
+              {product.brand.name}
+            </span>
           ) : null}
         </div>
       </div>

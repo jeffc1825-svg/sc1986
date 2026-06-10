@@ -1,6 +1,6 @@
 # SC1986 — 詢價型工業電子材料商城
 
-RFQ 詢價優先的工業電子材料型錄網站。客戶免登入瀏覽商品、加入報價車、送出詢價;業務於後台管理商品與詢價案件。經營模式對標廣華電子商城。
+RFQ 詢價優先的工業電子材料型錄網站。客戶免登入瀏覽商品、加入報價車、送出詢價;業務於後台管理商品與詢價案件。
 
 技術:Next.js 15(App Router)・React 19・TypeScript・Tailwind CSS v4・Supabase(Postgres/Auth/Storage/RLS)・pnpm・Vercel + Cloudflare・Resend。
 

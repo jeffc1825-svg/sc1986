@@ -5,15 +5,15 @@
 
 ## 階段總覽
 
-| Stage | 名稱 | 狀態 |
-| --- | --- | --- |
-| 0 | 文件與規範重寫 | ✅ 完成(2026-06-10) |
-| 1 | 專案基建與資料庫 | ✅ 完成(2026-06-10) |
-| 2 | 前台商品型錄 | ✅ 完成(2026-06-10) |
-| 3 | 報價車與詢價流程 | ✅ 完成(2026-06-10) |
-| 4 | 管理後台 | ✅ 完成(2026-06-10) |
-| 5 | SEO 與上線整備 | ✅ 完成(2026-06-10) |
-| 6 | 業主審查與真實資料上線 | 🔶 等待人工 |
+| Stage | 名稱                   | 狀態                |
+| ----- | ---------------------- | ------------------- |
+| 0     | 文件與規範重寫         | ✅ 完成(2026-06-10) |
+| 1     | 專案基建與資料庫       | ✅ 完成(2026-06-10) |
+| 2     | 前台商品型錄           | ✅ 完成(2026-06-10) |
+| 3     | 報價車與詢價流程       | ✅ 完成(2026-06-10) |
+| 4     | 管理後台               | ✅ 完成(2026-06-10) |
+| 5     | SEO 與上線整備         | ✅ 完成(2026-06-10) |
+| 6     | 業主審查與真實資料上線 | 🔶 等待人工         |
 
 ---
 
@@ -98,15 +98,15 @@
 
 ## Progress Log
 
-| 日期 | 階段 | 紀錄 |
-| --- | --- | --- |
-| 2026-06-10 | Stage 0 | 啟動重建:清除舊文件,確認技術棧 Next.js 15 + Supabase,完成全部新文件與 3 個 skills。 |
-| 2026-06-10 | Stage 1 | 專案骨架、集中設定、UI 元件、主題、佈局、migration(10 表+RLS+RPC)與 seed 完成;pnpm install 成功。 |
-| 2026-06-10 | Stage 2 | 首頁/目錄/詳情/關於完成,廣華式版型,伺服器端搜尋篩選分頁。 |
-| 2026-06-10 | Stage 3 | 報價車、/api/quote(原子 RPC+防濫用)、成功頁、Resend 通知與狀態回寫完成。 |
-| 2026-06-10 | Stage 4 | 登入與 fail-closed 守門、儀表板、商品 CRUD+圖片+批量、CSV 匯出入、詢價管理完成。 |
-| 2026-06-10 | Stage 5 | SEO/sitemap/robots、typecheck+lint+build 全綠、fail-closed 煙霧測試通過;交付業主審查(Stage 6)。 |
-| 2026-06-10 | Stage 6 前置 | 新增免瀏覽器建庫工具:`pnpm db:apply`(migration runner)、`pnpm admin:create`(建管理者);seed 擴充至 78 筆測試商品(+52,含 draft/archived 測試品);SQL 經 libpg_query 解析驗證、SKU/slug 無重複;`.env.local` 已寫入業主提供的 Supabase 連線金鑰(待補 DB 密碼)。 |
-| 2026-06-10 | 巢狀分類 | 分類改巢狀最深 4 層(migration 0002:深度/循環 trigger、parent FK restrict);新增 `GET /api/categories`(Data Cache 5 分鐘 + CDN 快取),Header 選單改非同步取用;目錄頁麵包屑+子分類卡格、側欄遞迴樹、行動版手風琴;後台分類下拉依深度縮排、CSV 匯入分類重名改報錯提示用 slug;seed 改 4 層分類樹(39 分類、80 商品),pglast 驗證無重複、深度=4;**待本機跑 `pnpm typecheck && pnpm lint && pnpm build` 驗證**(沙盒磁碟滿無法執行)。 |
-| 2026-06-10 | 巢狀分類修正 | 執行期 `controller[kState].transformAlgorithm is not a function`(Node 20.16+/22 webstreams vs Next fetch 攔截,vercel/next.js#68319/#75995):移除 `unstable_cache`,`fetchAllCategories` 改自製記憶體 TTL 快取(5 分鐘、in-flight 去重、失敗不快取,`invalidateCategoriesCache()` 可手動失效);docs/02 與 database skill 已記入「禁用 unstable_cache 包 Supabase 查詢」。 |
+| 日期       | 階段           | 紀錄                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-10 | Stage 0        | 啟動重建:清除舊文件,確認技術棧 Next.js 15 + Supabase,完成全部新文件與 3 個 skills。                                                                                                                                                                                                                                                                                                                                                 |
+| 2026-06-10 | Stage 1        | 專案骨架、集中設定、UI 元件、主題、佈局、migration(10 表+RLS+RPC)與 seed 完成;pnpm install 成功。                                                                                                                                                                                                                                                                                                                                   |
+| 2026-06-10 | Stage 2        | 首頁/目錄/詳情/關於完成,伺服器端搜尋篩選分頁。                                                                                                                                                                                                                                                                                                                                                                                      |
+| 2026-06-10 | Stage 3        | 報價車、/api/quote(原子 RPC+防濫用)、成功頁、Resend 通知與狀態回寫完成。                                                                                                                                                                                                                                                                                                                                                            |
+| 2026-06-10 | Stage 4        | 登入與 fail-closed 守門、儀表板、商品 CRUD+圖片+批量、CSV 匯出入、詢價管理完成。                                                                                                                                                                                                                                                                                                                                                    |
+| 2026-06-10 | Stage 5        | SEO/sitemap/robots、typecheck+lint+build 全綠、fail-closed 煙霧測試通過;交付業主審查(Stage 6)。                                                                                                                                                                                                                                                                                                                                     |
+| 2026-06-10 | Stage 6 前置   | 新增免瀏覽器建庫工具:`pnpm db:apply`(migration runner)、`pnpm admin:create`(建管理者);seed 擴充至 78 筆測試商品(+52,含 draft/archived 測試品);SQL 經 libpg_query 解析驗證、SKU/slug 無重複;`.env.local` 已寫入業主提供的 Supabase 連線金鑰(待補 DB 密碼)。                                                                                                                                                                          |
+| 2026-06-10 | 巢狀分類       | 分類改巢狀最深 4 層(migration 0002:深度/循環 trigger、parent FK restrict);新增 `GET /api/categories`(Data Cache 5 分鐘 + CDN 快取),Header 選單改非同步取用;目錄頁麵包屑+子分類卡格、側欄遞迴樹、行動版手風琴;後台分類下拉依深度縮排、CSV 匯入分類重名改報錯提示用 slug;seed 改 4 層分類樹(39 分類、80 商品),pglast 驗證無重複、深度=4;**待本機跑 `pnpm typecheck && pnpm lint && pnpm build` 驗證**(沙盒磁碟滿無法執行)。           |
+| 2026-06-10 | 巢狀分類修正   | 執行期 `controller[kState].transformAlgorithm is not a function`(Node 20.16+/22 webstreams vs Next fetch 攔截,vercel/next.js#68319/#75995):移除 `unstable_cache`,`fetchAllCategories` 改自製記憶體 TTL 快取(5 分鐘、in-flight 去重、失敗不快取,`invalidateCategoriesCache()` 可手動失效);docs/02 與 database skill 已記入「禁用 unstable_cache 包 Supabase 查詢」。                                                                 |
 | 2026-06-10 | 巢狀分類修正 2 | 瀏覽商品仍報 `transformAlgorithm` + Auth 429:根因是公開型錄用 cookie-aware client,訪客帶過期 admin cookie 時每個請求(含 prefetch)觸發 token refresh,refresh 回應再撞 Node webstreams bug 被當網路錯誤重試 → 打爆 Auth API。修正:公開路徑(queries.ts、sitemap、/api/quote)全改 `lib/supabase/public.ts`(無 cookie);三個 client fetch 一律 `cache:'no-store'` 繞開 patched fetch;middleware 無 sb- cookie 直接導登入頁不打 Auth API。 |

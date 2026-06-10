@@ -9,7 +9,7 @@ import type { CategoryNode } from "@/types";
 import { cn } from "@/lib/utils";
 
 /**
- * 分類導覽列:桌面下拉「產品目錄」+ 行動版抽屜(廣華式)。
+ * 分類導覽列:桌面下拉「產品目錄」+ 行動版抽屜。
  * 分類樹改由 GET /api/categories 非同步取得(CDN + Data Cache 雙層快取),
  * 新增分類後選單自動更新,無須重新部署;載入完成前僅顯示固定連結。
  */
@@ -24,9 +24,12 @@ export function CategoryNav() {
   React.useEffect(() => {
     let cancelled = false;
     fetch(routes.api.categories)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((res) =>
+        res.ok ? res.json() : Promise.reject(new Error(String(res.status))),
+      )
       .then((data: { categories: CategoryNode[] }) => {
-        if (!cancelled && Array.isArray(data.categories)) setTree(data.categories);
+        if (!cancelled && Array.isArray(data.categories))
+          setTree(data.categories);
       })
       .catch(() => {
         /* 分類選單載入失敗不阻斷頁面,目錄頁側欄仍可瀏覽分類 */
@@ -55,11 +58,21 @@ export function CategoryNav() {
           >
             <LayoutGrid className="size-4 text-primary" aria-hidden />
             產品目錄
-            <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} aria-hidden />
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform",
+                open && "rotate-180",
+              )}
+              aria-hidden
+            />
           </button>
           {open ? (
             <>
-              <div className="fixed inset-0 z-30" aria-hidden onClick={() => setOpen(false)} />
+              <div
+                className="fixed inset-0 z-30"
+                aria-hidden
+                onClick={() => setOpen(false)}
+              />
               <div className="absolute left-0 top-full z-40 grid w-[640px] grid-cols-2 gap-x-6 gap-y-4 rounded-b-lg border border-border bg-card p-5 shadow-lg lg:w-[760px]">
                 {(tree ?? []).map((cat) => (
                   <div key={cat.id}>
@@ -79,7 +92,10 @@ export function CategoryNav() {
                           >
                             {child.name}
                             {child.children.length > 0 ? (
-                              <ChevronRight className="size-3 opacity-60" aria-hidden />
+                              <ChevronRight
+                                className="size-3 opacity-60"
+                                aria-hidden
+                              />
                             ) : null}
                           </Link>
                         ))}
@@ -88,7 +104,9 @@ export function CategoryNav() {
                   </div>
                 ))}
                 {tree === null ? (
-                  <p className="col-span-2 py-2 text-sm text-muted-foreground">分類載入中…</p>
+                  <p className="col-span-2 py-2 text-sm text-muted-foreground">
+                    分類載入中…
+                  </p>
                 ) : null}
               </div>
             </>
@@ -110,7 +128,11 @@ export function CategoryNav() {
         <div className="ml-1 flex items-center gap-1 overflow-x-auto">
           <NavLink href={routes.products}>全部商品</NavLink>
           {(tree ?? []).slice(0, 5).map((cat) => (
-            <NavLink key={cat.id} href={productsUrl({ category: cat.slug })} className="hidden lg:inline-flex">
+            <NavLink
+              key={cat.id}
+              href={productsUrl({ category: cat.slug })}
+              className="hidden lg:inline-flex"
+            >
               {cat.name}
             </NavLink>
           ))}
@@ -121,10 +143,16 @@ export function CategoryNav() {
       {/* 行動版抽屜:遞迴手風琴,支援至深層分類 */}
       {drawer ? (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/50" aria-hidden onClick={() => setDrawer(false)} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            aria-hidden
+            onClick={() => setDrawer(false)}
+          />
           <div className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-card shadow-xl">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <span className="text-sm font-semibold text-foreground">產品目錄</span>
+              <span className="text-sm font-semibold text-foreground">
+                產品目錄
+              </span>
               <button
                 type="button"
                 onClick={() => setDrawer(false)}
@@ -142,7 +170,9 @@ export function CategoryNav() {
                 全部商品
               </Link>
               {tree === null ? (
-                <p className="px-2 py-2 text-sm text-muted-foreground">分類載入中…</p>
+                <p className="px-2 py-2 text-sm text-muted-foreground">
+                  分類載入中…
+                </p>
               ) : (
                 <DrawerTree nodes={tree} depth={0} />
               )}
@@ -161,7 +191,13 @@ export function CategoryNav() {
 }
 
 /** 抽屜內的遞迴分類列表:有子分類的節點可展開/收合 */
-function DrawerTree({ nodes, depth }: { nodes: CategoryNode[]; depth: number }) {
+function DrawerTree({
+  nodes,
+  depth,
+}: {
+  nodes: CategoryNode[];
+  depth: number;
+}) {
   return (
     <>
       {nodes.map((node) => (
@@ -183,7 +219,9 @@ function DrawerNode({ node, depth }: { node: CategoryNode; depth: number }) {
           style={{ paddingLeft: `${8 + depth * 16}px` }}
           className={cn(
             "block flex-1 rounded-md py-2 pr-2 text-sm hover:bg-muted",
-            depth === 0 ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground",
+            depth === 0
+              ? "font-semibold text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           {node.name}
@@ -196,11 +234,19 @@ function DrawerNode({ node, depth }: { node: CategoryNode; depth: number }) {
             aria-label={expanded ? `收合 ${node.name}` : `展開 ${node.name}`}
             className="rounded-md p-2 text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ChevronRight className={cn("size-4 transition-transform", expanded && "rotate-90")} aria-hidden />
+            <ChevronRight
+              className={cn(
+                "size-4 transition-transform",
+                expanded && "rotate-90",
+              )}
+              aria-hidden
+            />
           </button>
         ) : null}
       </div>
-      {hasChildren && expanded ? <DrawerTree nodes={node.children} depth={depth + 1} /> : null}
+      {hasChildren && expanded ? (
+        <DrawerTree nodes={node.children} depth={depth + 1} />
+      ) : null}
     </div>
   );
 }

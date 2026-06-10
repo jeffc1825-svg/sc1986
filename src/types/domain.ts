@@ -10,7 +10,10 @@ import type {
 export interface ProductListItem extends ProductRow {
   brand: Pick<BrandRow, "id" | "name" | "slug"> | null;
   category: Pick<CategoryRow, "id" | "name" | "slug"> | null;
-  cover_image: Pick<ProductImageRow, "public_url" | "storage_path" | "alt"> | null;
+  cover_image: Pick<
+    ProductImageRow,
+    "public_url" | "storage_path" | "alt"
+  > | null;
 }
 
 /** 詳情頁完整商品資料 */
@@ -35,7 +38,7 @@ export interface CategoryOption {
 }
 
 /**
- * 分類樹深度上限(1 = 頂層,對標廣華電子最深 4 層)。
+ * 分類樹深度上限(1 = 頂層,最深 4 層)。
  * 與 migration 0002 的 check_category_depth() trigger 同步,修改其一必須同步另一處。
  */
 export const CATEGORY_MAX_DEPTH = 4;

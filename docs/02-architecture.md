@@ -15,17 +15,17 @@ Supabase(PostgreSQL / Auth / Storage / RLS / RPC)
 
 ## 技術棧與版本基準
 
-| 項目 | 選擇 |
-| --- | --- |
-| 框架 | Next.js 15(App Router)、React 19 |
-| 語言 | TypeScript 5 strict |
-| 樣式 | Tailwind CSS v4(CSS-first `@theme`,無 tailwind.config) |
-| UI | 自製 shadcn 風格元件 `src/components/ui/`,icon 用 lucide-react,無 Radix |
-| 資料 | Supabase JS 2.x + `@supabase/ssr` |
-| 驗證 | Zod |
-| 主題 | next-themes(class 策略) |
-| CSV | papaparse(伺服器端解析) |
-| 套件 | pnpm,只維護 `pnpm-lock.yaml` |
+| 項目 | 選擇                                                                    |
+| ---- | ----------------------------------------------------------------------- |
+| 框架 | Next.js 15(App Router)、React 19                                        |
+| 語言 | TypeScript 5 strict                                                     |
+| 樣式 | Tailwind CSS v4(CSS-first `@theme`,無 tailwind.config)                  |
+| UI   | 自製 shadcn 風格元件 `src/components/ui/`,icon 用 lucide-react,無 Radix |
+| 資料 | Supabase JS 2.x + `@supabase/ssr`                                       |
+| 驗證 | Zod                                                                     |
+| 主題 | next-themes(class 策略)                                                 |
+| CSV  | papaparse(伺服器端解析)                                                 |
+| 套件 | pnpm,只維護 `pnpm-lock.yaml`                                            |
 
 升級任何主要版本前:查官方遷移文件 → 固定版本 → `typecheck/lint/build` + 主要流程驗證。
 
@@ -73,15 +73,15 @@ public/ brand/ placeholder-product.svg
 
 ## 公開路由
 
-| 路由 | 用途 |
-| --- | --- |
-| `/` | 首頁(主視覺、分類捷徑、新品、品牌牆) |
-| `/products?q=&category=&brand=&price_mode=&stock_status=&sort=&page=` | 目錄 |
-| `/products/[slug]` | 詳情 |
-| `/quote`、`/quote/success?ref=` | 報價車、成功頁 |
-| `/about` | 公司與服務說明 |
-| `POST /api/quote` | 建立詢價 |
-| `GET /api/categories` | 公開分類樹 JSON(Header 選單非同步取用;CDN + Data Cache 雙層快取) |
+| 路由                                                                  | 用途                                                             |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `/`                                                                   | 首頁(主視覺、分類捷徑、新品、品牌牆)                             |
+| `/products?q=&category=&brand=&price_mode=&stock_status=&sort=&page=` | 目錄                                                             |
+| `/products/[slug]`                                                    | 詳情                                                             |
+| `/quote`、`/quote/success?ref=`                                       | 報價車、成功頁                                                   |
+| `/about`                                                              | 公司與服務說明                                                   |
+| `POST /api/quote`                                                     | 建立詢價                                                         |
+| `GET /api/categories`                                                 | 公開分類樹 JSON(Header 選單非同步取用;CDN + Data Cache 雙層快取) |
 
 ## 管理路由
 
@@ -91,18 +91,18 @@ public/ brand/ placeholder-product.svg
 
 enum:`product_price_mode(public_price|quote_only|login_or_quote)`、`product_stock_status(in_stock|preorder|quote_required|discontinued)`、`product_status(draft|active|archived)`、`quote_status(new|reviewing|quoted|closed|cancelled)`、`admin_role(owner|admin|staff)`、`import_batch_status(pending|processing|completed|failed)`、`notification_status(pending|sent|failed|skipped)`。
 
-| 表 | 重點欄位 |
-| --- | --- |
-| `brands` | name/slug unique、website |
-| `categories` | parent_id 自參照(巢狀,最深 4 層;0002 trigger 防循環與超深,FK on delete restrict)、slug unique、sort_order |
-| `products` | sku/slug unique、brand_id、category_id、short_description、description、ordering_notice、pricing_note、price numeric(12,2)、price_mode、stock_status、status |
-| `product_images` | product_id、storage_path、public_url、alt、sort_order |
-| `product_specs` | product_id、name、value、unit、sort_order |
-| `admin_users` | auth_user_id unique、name、role、is_active |
-| `quote_requests` | reference_code unique(如 Q20260610-7F3K)、customer_name、company、email、phone、message、status、admin_note、notification_status、notification_error |
-| `quote_items` | quote_request_id、product_id nullable、sku/name 快照、quantity>0、note |
-| `product_import_batches` | uploaded_by、original_filename、status、row_count、success_count、error_count、error_summary |
-| `product_import_rows` | batch_id、row_number、raw_data jsonb、normalized_data jsonb、error_message、product_id |
+| 表                       | 重點欄位                                                                                                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `brands`                 | name/slug unique、website                                                                                                                                    |
+| `categories`             | parent_id 自參照(巢狀,最深 4 層;0002 trigger 防循環與超深,FK on delete restrict)、slug unique、sort_order                                                    |
+| `products`               | sku/slug unique、brand_id、category_id、short_description、description、ordering_notice、pricing_note、price numeric(12,2)、price_mode、stock_status、status |
+| `product_images`         | product_id、storage_path、public_url、alt、sort_order                                                                                                        |
+| `product_specs`          | product_id、name、value、unit、sort_order                                                                                                                    |
+| `admin_users`            | auth_user_id unique、name、role、is_active                                                                                                                   |
+| `quote_requests`         | reference_code unique(如 Q20260610-7F3K)、customer_name、company、email、phone、message、status、admin_note、notification_status、notification_error         |
+| `quote_items`            | quote_request_id、product_id nullable、sku/name 快照、quantity>0、note                                                                                       |
+| `product_import_batches` | uploaded_by、original_filename、status、row_count、success_count、error_count、error_summary                                                                 |
+| `product_import_rows`    | batch_id、row_number、raw_data jsonb、normalized_data jsonb、error_message、product_id                                                                       |
 
 `quote_items.sku/name` 是詢價當下快照;商品日後修改或刪除,案件仍可讀。
 
@@ -126,7 +126,7 @@ Service role:只在伺服器端、且呼叫前已通過 `requireAdmin()`(或系�
 
 ## 分類(巢狀)與快取
 
-- 結構:adjacency list(`categories.parent_id`),**最深 4 層**(對標廣華電子)。上限由 migration 0002 的 `check_category_depth()` trigger 強制(含防循環、搬移子樹檢查),與 `src/types/domain.ts` 的 `CATEGORY_MAX_DEPTH` 同步。
+- 結構:adjacency list(`categories.parent_id`),**最深 4 層**。上限由 migration 0002 的 `check_category_depth()` trigger 強制(含防循環、搬移子樹檢查),與 `src/types/domain.ts` 的 `CATEGORY_MAX_DEPTH` 同步。
 - 維護原則:不引入 materialized path / closure table;分類是小表,全量讀取後在應用層組樹(`buildCategoryTree`)、算子孫(`categoryDescendantIds`)、組麵包屑(`categoryPathById/BySlug`)。
 - 快取(雙層):
   1. 資料層:`fetchAllCategories` 為**自製記憶體 TTL 快取**(5 分鐘、in-flight 去重、失敗不快取),每個 server instance 一份;日後若有後台分類 CRUD,mutation 後呼叫 `invalidateCategoriesCache()`(其他 instance 等 TTL 到期)。

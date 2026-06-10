@@ -6,7 +6,10 @@ import {
   type ProductDetail,
   type ProductListItem,
 } from "@/types";
-import { categoryDescendantIds, fetchAllCategories } from "@/lib/catalog/categories";
+import {
+  categoryDescendantIds,
+  fetchAllCategories,
+} from "@/lib/catalog/categories";
 
 const LIST_SELECT = `
   *,
@@ -16,11 +19,20 @@ const LIST_SELECT = `
 `;
 
 type RawListRow = Omit<ProductListItem, "cover_image"> & {
-  images: { public_url: string | null; storage_path: string; alt: string | null; sort_order: number }[] | null;
+  images:
+    | {
+        public_url: string | null;
+        storage_path: string;
+        alt: string | null;
+        sort_order: number;
+      }[]
+    | null;
 };
 
 function toListItem(row: RawListRow): ProductListItem {
-  const sorted = [...(row.images ?? [])].sort((a, b) => a.sort_order - b.sort_order);
+  const sorted = [...(row.images ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
   const { images: _images, ...rest } = row;
   void _images;
   return { ...rest, cover_image: sorted[0] ?? null };
@@ -51,7 +63,8 @@ export async function fetchCatalog(query: CatalogQuery): Promise<{
     .eq("status", "active");
 
   if (categoryIds) builder = builder.in("category_id", categoryIds);
-  if (unknownCategory) builder = builder.eq("id", "00000000-0000-0000-0000-000000000000");
+  if (unknownCategory)
+    builder = builder.eq("id", "00000000-0000-0000-0000-000000000000");
 
   if (query.brand) {
     const { data: brand } = await supabase
@@ -65,7 +78,8 @@ export async function fetchCatalog(query: CatalogQuery): Promise<{
   }
 
   if (query.price_mode) builder = builder.eq("price_mode", query.price_mode);
-  if (query.stock_status) builder = builder.eq("stock_status", query.stock_status);
+  if (query.stock_status)
+    builder = builder.eq("stock_status", query.stock_status);
 
   if (query.q) {
     // 跳脫 PostgREST or 語法的保留字元,ILIKE 比對 SKU/品名/簡述/描述
@@ -107,7 +121,9 @@ export async function fetchCatalog(query: CatalogQuery): Promise<{
 }
 
 /** 商品詳情(僅 active;RLS 已限制,此處再防一層) */
-export async function fetchProductBySlug(slug: string): Promise<ProductDetail | null> {
+export async function fetchProductBySlug(
+  slug: string,
+): Promise<ProductDetail | null> {
   const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("products")
@@ -125,13 +141,18 @@ export async function fetchProductBySlug(slug: string): Promise<ProductDetail | 
   if (!data) return null;
 
   const detail = data as unknown as ProductDetail;
-  detail.images = [...detail.images].sort((a, b) => a.sort_order - b.sort_order);
+  detail.images = [...detail.images].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
   detail.specs = [...detail.specs].sort((a, b) => a.sort_order - b.sort_order);
   return detail;
 }
 
 /** 相關商品:同分類優先,不足補同品牌(真實查詢,不用示範資料) */
-export async function fetchRelatedProducts(product: ProductDetail, limit = 4): Promise<ProductListItem[]> {
+export async function fetchRelatedProducts(
+  product: ProductDetail,
+  limit = 4,
+): Promise<ProductListItem[]> {
   const supabase = createSupabasePublicClient();
   const collected: RawListRow[] = [];
 
@@ -178,16 +199,25 @@ export async function fetchNewProducts(limit = 8): Promise<ProductListItem[]> {
 
 export async function fetchBrands(): Promise<BrandRow[]> {
   const supabase = createSupabasePublicClient();
-  const { data, error } = await supabase.from("brands").select("*").order("name");
+  const { data, error } = await supabase
+    .from("brands")
+    .select("*")
+    .order("name");
   if (error) throw new Error(`讀取品牌失敗:${error.message}`);
   return (data ?? []) as BrandRow[];
 }
 
-/** 首頁統計(現貨品項/商品筆數,廣華式 footer 數字) */
-export async function fetchCatalogStats(): Promise<{ active: number; inStock: number }> {
+/** 首頁統計(現貨品項/商品筆數,footer 數字) */
+export async function fetchCatalogStats(): Promise<{
+  active: number;
+  inStock: number;
+}> {
   const supabase = createSupabasePublicClient();
   const [activeRes, stockRes] = await Promise.all([
-    supabase.from("products").select("id", { count: "exact", head: true }).eq("status", "active"),
+    supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active"),
     supabase
       .from("products")
       .select("id", { count: "exact", head: true })
