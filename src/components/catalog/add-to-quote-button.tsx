@@ -34,7 +34,8 @@ export function AddToQuoteButton({ product, className }: { product: ProductInfo;
     <Button
       variant={added ? "secondary" : "outline"}
       size="sm"
-      className={cn("w-full", className)}
+      disabled={added}
+      className={cn("w-full", added && "disabled:opacity-100", className)}
       onClick={() => {
         const ok = addItem(product);
         if (!ok) {
@@ -103,6 +104,8 @@ export function AddToQuoteWithQuantity({ product }: { product: ProductInfo }) {
 
       <Button
         size="lg"
+        disabled={added}
+        className={cn(added && "disabled:opacity-100")}
         onClick={() => {
           const ok = addItem(product, quantity);
           if (!ok) {

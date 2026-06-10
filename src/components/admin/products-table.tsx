@@ -13,11 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
 
+type BulkAction = "active" | "draft" | "archived" | "delete";
+
 export function ProductsTable({ products }: { products: ProductListItem[] }) {
   const router = useRouter();
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
-  const [pending, setPending] = React.useState(false);
+  const [pendingAction, setPendingAction] = React.useState<BulkAction | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
+  const pending = pendingAction !== null;
 
   const allSelected = products.length > 0 && products.every((p) => selected.has(p.id));
   const ids = React.useMemo(() => Array.from(selected), [selected]);
@@ -35,8 +38,12 @@ export function ProductsTable({ products }: { products: ProductListItem[] }) {
     });
   }
 
-  async function runBulk(action: () => Promise<{ error: string | null; success?: string | null }>) {
-    setPending(true);
+  async function runBulk(
+    key: BulkAction,
+    action: () => Promise<{ error: string | null; success?: string | null }>,
+  ) {
+    if (pending) return;
+    setPendingAction(key);
     setMessage(null);
     try {
       const result = await action();
@@ -46,7 +53,7 @@ export function ProductsTable({ products }: { products: ProductListItem[] }) {
         router.refresh();
       }
     } finally {
-      setPending(false);
+      setPendingAction(null);
     }
   }
 
@@ -62,7 +69,8 @@ export function ProductsTable({ products }: { products: ProductListItem[] }) {
             size="sm"
             variant="outline"
             disabled={pending || ids.length === 0}
-            onClick={() => runBulk(() => bulkUpdateStatusAction(ids, "active"))}
+            loading={pendingAction === "active"}
+            onClick={() => runBulk("active", () => bulkUpdateStatusAction(ids, "active"))}
           >
             上架
           </Button>
@@ -70,7 +78,8 @@ export function ProductsTable({ products }: { products: ProductListItem[] }) {
             size="sm"
             variant="outline"
             disabled={pending || ids.length === 0}
-            onClick={() => runBulk(() => bulkUpdateStatusAction(ids, "draft"))}
+            loading={pendingAction === "draft"}
+            onClick={() => runBulk("draft", () => bulkUpdateStatusAction(ids, "draft"))}
           >
             轉草稿
           </Button>
@@ -78,7 +87,8 @@ export function ProductsTable({ products }: { products: ProductListItem[] }) {
             size="sm"
             variant="outline"
             disabled={pending || ids.length === 0}
-            onClick={() => runBulk(() => bulkUpdateStatusAction(ids, "archived"))}
+            loading={pendingAction === "archived"}
+            onClick={() => runBulk("archived", () => bulkUpdateStatusAction(ids, "archived"))}
           >
             封存
           </Button>
@@ -86,9 +96,10 @@ export function ProductsTable({ products }: { products: ProductListItem[] }) {
             size="sm"
             variant="destructive"
             disabled={pending || ids.length === 0}
+            loading={pendingAction === "delete"}
             onClick={() => {
               if (window.confirm(`確定刪除 ${ids.length} 筆商品?圖片將一併刪除,無法復原。`)) {
-                runBulk(() => bulkDeleteAction(ids));
+                runBulk("delete", () => bulkDeleteAction(ids));
               }
             }}
           >

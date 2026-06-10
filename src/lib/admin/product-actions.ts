@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/guard";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { parseProductForm, type ProductInput } from "@/lib/admin/product-schema";
+import {
+  parseProductForm,
+  type ProductFieldErrors,
+  type ProductInput,
+} from "@/lib/admin/product-schema";
 import { routes } from "@/config/routes";
 import { supabaseStorage, uploadLimits } from "@/config/storage";
 import { slugify } from "@/lib/utils";
@@ -12,6 +16,8 @@ import { slugify } from "@/lib/utils";
 export interface ActionState {
   error: string | null;
   success?: string | null;
+  /** 欄位層級驗證錯誤(Zod);供表單顯示紅框與欄位下方提示 */
+  fieldErrors?: ProductFieldErrors;
 }
 
 function toRow(input: ProductInput) {
@@ -48,7 +54,7 @@ export async function createProductAction(_prev: ActionState, formData: FormData
   const { supabase } = await requireAdmin();
 
   const parsed = parseProductForm(formData);
-  if (!parsed.success) return { error: parsed.error };
+  if (!parsed.success) return { error: parsed.error, fieldErrors: parsed.fieldErrors };
   const input = parsed.data;
 
   const slug = await resolveSlug(supabase, input);
@@ -88,7 +94,7 @@ export async function updateProductAction(
   const { supabase } = await requireAdmin();
 
   const parsed = parseProductForm(formData);
-  if (!parsed.success) return { error: parsed.error };
+  if (!parsed.success) return { error: parsed.error, fieldErrors: parsed.fieldErrors };
   const input = parsed.data;
 
   const slug = await resolveSlug(supabase, input, productId);

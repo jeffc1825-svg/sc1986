@@ -2,6 +2,9 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* 表單驗證錯誤狀態:FormField 在 error 時對控制項注入 aria-invalid="true" */
+@custom-variant aria-invalid (&[aria-invalid="true"]);
+
 /* ============================================================
    SC1986 語意設計 token — 見 docs/03-design-system.md
    元件一律使用語意 class(bg-background / text-foreground ...)
@@ -77,6 +80,16 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Tailwind v4 preflight 將 button 預設為 cursor: default;
+   全站可點擊元素一律顯示手掌游標,disabled 時除外。 */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
 }
 
 /* 數字等寬,規格與價格對齊 */

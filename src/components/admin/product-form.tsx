@@ -9,11 +9,12 @@ import {
   updateProductAction,
   type ActionState,
 } from "@/lib/admin/product-actions";
+import { parseProductForm, type ProductFieldErrors } from "@/lib/admin/product-schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { FormField, pruneFieldErrors } from "@/components/ui/form-field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SpecDraft {
@@ -32,12 +33,47 @@ interface ProductFormProps {
   categories: CategoryOption[];
 }
 
+/** 依 DOM 順序聚焦第一個驗證失敗的控制項 */
+function focusFirstError(form: HTMLFormElement, errors: ProductFieldErrors) {
+  for (const el of Array.from(form.elements)) {
+    const name = (el as HTMLInputElement).name;
+    if (name && errors[name] && el instanceof HTMLElement) {
+      el.focus({ preventScroll: true });
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      return;
+    }
+  }
+}
+
 export function ProductForm({ mode, product, specs, brands, categories }: ProductFormProps) {
   const action =
     mode === "create" ? createProductAction : updateProductAction.bind(null, product!.id);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, {
     error: null,
   });
+
+  // 送出前以共用 Zod schema 做客製驗證(瀏覽器預設驗證已由 noValidate 停用);
+  // 伺服器端 action 仍會以同一 schema 再驗一次,fieldErrors 同步進本地 errors。
+  // 已顯示錯誤的欄位在輸入時即時重新驗證:修正即移除紅框與提示、
+  // 仍未通過則更新訊息;輸入途中不新增新錯誤(pruneFieldErrors)。
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const [errors, setErrors] = React.useState<ProductFieldErrors>({});
+  const hasFieldErrors = Object.keys(errors).length > 0;
+  const summaryError = hasFieldErrors
+    ? "資料驗證失敗,請修正紅框標示的欄位。"
+    : state.fieldErrors
+      ? null // 伺服器驗證錯誤已被使用者即時修正,摘要一併移除
+      : state.error;
+
+  // action 回傳新狀態時,將伺服器端 fieldErrors 同步到本地(之後可被輸入即時清除)
+  React.useEffect(() => {
+    setErrors(state.fieldErrors ?? {});
+  }, [state]);
+
+  const revalidate = React.useCallback((form: HTMLFormElement) => {
+    const parsed = parseProductForm(new FormData(form));
+    setErrors((prev) => pruneFieldErrors(prev, parsed.success ? {} : parsed.fieldErrors));
+  }, []);
 
   const [specDrafts, setSpecDrafts] = React.useState<SpecDraft[]>(
     (specs ?? []).map((s, i) => ({ key: i, name: s.name, value: s.value, unit: s.unit ?? "" })),
@@ -50,12 +86,43 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
       .map((s) => ({ name: s.name, value: s.value, unit: s.unit })),
   );
 
+  // 規格列是 controlled input(序列化進 hidden specs_json),change 事件當下
+  // hidden 值尚未更新,因此規格錯誤改在 specsJson 更新後重新驗證
+  React.useEffect(() => {
+    if (errors.specs && formRef.current) revalidate(formRef.current);
+  }, [specsJson, errors.specs, revalidate]);
+
   function updateSpec(key: number, field: "name" | "value" | "unit", val: string) {
     setSpecDrafts((prev) => prev.map((s) => (s.key === key ? { ...s, [field]: val } : s)));
   }
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const form = e.currentTarget;
+    const parsed = parseProductForm(new FormData(form));
+    if (!parsed.success) {
+      e.preventDefault();
+      setErrors(parsed.fieldErrors);
+      focusFirstError(form, parsed.fieldErrors);
+      return;
+    }
+    setErrors({});
+  }
+
+  /** 已顯示錯誤時,任何欄位輸入都即時重新驗證(事件委派至 form) */
+  function handleFormChange(e: React.FormEvent<HTMLFormElement>) {
+    if (!hasFieldErrors) return;
+    revalidate(e.currentTarget);
+  }
+
   return (
-    <form action={formAction} className="space-y-5">
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={handleSubmit}
+      onChange={handleFormChange}
+      noValidate
+      className="space-y-5"
+    >
       <input type="hidden" name="specs_json" value={specsJson} />
 
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -65,25 +132,17 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
               <CardTitle className="text-base">基本資料</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="sku" required>
-                  SKU(型號)
-                </Label>
-                <Input id="sku" name="sku" defaultValue={product?.sku} required maxLength={64} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="slug">網址代稱(留空自動產生)</Label>
-                <Input id="slug" name="slug" defaultValue={product?.slug} maxLength={120} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="name" required>
-                  品名
-                </Label>
-                <Input id="name" name="name" defaultValue={product?.name} required maxLength={200} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="brand_id">品牌</Label>
-                <Select id="brand_id" name="brand_id" defaultValue={product?.brand_id ?? ""}>
+              <FormField id="sku" label="SKU(型號)" required error={errors.sku}>
+                <Input name="sku" defaultValue={product?.sku} required maxLength={64} />
+              </FormField>
+              <FormField id="slug" label="網址代稱(留空自動產生)" error={errors.slug}>
+                <Input name="slug" defaultValue={product?.slug} maxLength={120} />
+              </FormField>
+              <FormField id="name" label="品名" required error={errors.name} className="sm:col-span-2">
+                <Input name="name" defaultValue={product?.name} required maxLength={200} />
+              </FormField>
+              <FormField id="brand_id" label="品牌" error={errors.brand_id}>
+                <Select name="brand_id" defaultValue={product?.brand_id ?? ""}>
                   <option value="">(無)</option>
                   {brands.map((b) => (
                     <option key={b.id} value={b.id}>
@@ -91,10 +150,9 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
                     </option>
                   ))}
                 </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="category_id">分類</Label>
-                <Select id="category_id" name="category_id" defaultValue={product?.category_id ?? ""}>
+              </FormField>
+              <FormField id="category_id" label="分類" error={errors.category_id}>
+                <Select name="category_id" defaultValue={product?.category_id ?? ""}>
                   <option value="">(無)</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -102,37 +160,46 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
                     </option>
                   ))}
                 </Select>
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="short_description">簡述(列表與 SEO 用)</Label>
+              </FormField>
+              <FormField
+                id="short_description"
+                label="簡述(列表與 SEO 用)"
+                error={errors.short_description}
+                className="sm:col-span-2"
+              >
                 <Textarea
-                  id="short_description"
                   name="short_description"
                   rows={2}
                   maxLength={300}
                   defaultValue={product?.short_description ?? ""}
                 />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="description">商品介紹</Label>
+              </FormField>
+              <FormField
+                id="description"
+                label="商品介紹"
+                error={errors.description}
+                className="sm:col-span-2"
+              >
                 <Textarea
-                  id="description"
                   name="description"
                   rows={6}
                   maxLength={5000}
                   defaultValue={product?.description ?? ""}
                 />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="ordering_notice">訂購說明(顯示於詳情頁提示框)</Label>
+              </FormField>
+              <FormField
+                id="ordering_notice"
+                label="訂購說明(顯示於詳情頁提示框)"
+                error={errors.ordering_notice}
+                className="sm:col-span-2"
+              >
                 <Textarea
-                  id="ordering_notice"
                   name="ordering_notice"
                   rows={2}
                   maxLength={500}
                   defaultValue={product?.ordering_notice ?? ""}
                 />
-              </div>
+              </FormField>
             </CardContent>
           </Card>
 
@@ -196,6 +263,11 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
                   </div>
                 ))
               )}
+              {errors.specs ? (
+                <p role="alert" className="text-xs text-destructive">
+                  {errors.specs}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -207,23 +279,21 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
               <CardTitle className="text-base">價格與庫存</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="price_mode" required>
-                  價格模式
-                </Label>
-                <Select id="price_mode" name="price_mode" defaultValue={product?.price_mode ?? "quote_only"}>
+              <FormField
+                id="price_mode"
+                label="價格模式"
+                required
+                error={errors.price_mode}
+                hint="非「公開參考價」模式時,前台一律不顯示數字價格。"
+              >
+                <Select name="price_mode" defaultValue={product?.price_mode ?? "quote_only"}>
                   <option value="public_price">公開參考價</option>
                   <option value="quote_only">僅詢價($詢價)</option>
                   <option value="login_or_quote">報價後提供</option>
                 </Select>
-                <p className="text-xs text-muted-foreground">
-                  非「公開參考價」模式時,前台一律不顯示數字價格。
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="price">含稅參考價(TWD)</Label>
+              </FormField>
+              <FormField id="price" label="含稅參考價(TWD)" error={errors.price}>
                 <Input
-                  id="price"
                   name="price"
                   type="number"
                   step="0.01"
@@ -231,32 +301,23 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
                   defaultValue={product?.price ?? ""}
                   placeholder="留空 = 未定價"
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="pricing_note">價格備註</Label>
+              </FormField>
+              <FormField id="pricing_note" label="價格備註" error={errors.pricing_note}>
                 <Input
-                  id="pricing_note"
                   name="pricing_note"
                   maxLength={300}
                   defaultValue={product?.pricing_note ?? ""}
                   placeholder="如:依數量階梯報價"
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="stock_status" required>
-                  庫存狀態
-                </Label>
-                <Select
-                  id="stock_status"
-                  name="stock_status"
-                  defaultValue={product?.stock_status ?? "quote_required"}
-                >
+              </FormField>
+              <FormField id="stock_status" label="庫存狀態" required error={errors.stock_status}>
+                <Select name="stock_status" defaultValue={product?.stock_status ?? "quote_required"}>
                   <option value="in_stock">現貨</option>
                   <option value="preorder">可預訂</option>
                   <option value="quote_required">需確認交期</option>
                   <option value="discontinued">停產品</option>
                 </Select>
-              </div>
+              </FormField>
             </CardContent>
           </Card>
 
@@ -274,10 +335,13 @@ export function ProductForm({ mode, product, specs, brands, categories }: Produc
                 匯入或 AI 產生的資料必須先以草稿人工審核後再上架。
               </p>
 
-              {state.error ? (
-                <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2.5 text-sm text-destructive">
+              {summaryError ? (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2.5 text-sm text-destructive"
+                >
                   <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-                  <p>{state.error}</p>
+                  <p>{summaryError}</p>
                 </div>
               ) : null}
               {state.success ? (

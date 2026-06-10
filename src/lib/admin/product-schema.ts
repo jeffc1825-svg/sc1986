@@ -44,15 +44,38 @@ export const productInputSchema = z.object({
 
 export type ProductInput = z.infer<typeof productInputSchema>;
 
+/** 欄位名稱 → 第一則錯誤訊息;specs.* 的錯誤統一收斂到 "specs" 鍵 */
+export type ProductFieldErrors = Partial<Record<string, string>>;
+
+const VALIDATION_SUMMARY = "資料驗證失敗,請修正紅框標示的欄位。";
+
+function toFieldErrors(error: z.ZodError): ProductFieldErrors {
+  const fieldErrors: ProductFieldErrors = {};
+  for (const issue of error.issues) {
+    const [root, index] = issue.path;
+    const key = root === "specs" ? "specs" : String(root);
+    if (fieldErrors[key]) continue; // 每欄位只保留第一則
+    fieldErrors[key] =
+      root === "specs" && typeof index === "number"
+        ? `第 ${index + 1} 列:${issue.message}`
+        : issue.message;
+  }
+  return fieldErrors;
+}
+
 /** 從 FormData 解析商品表單(specs 由前端序列化為 JSON 字串) */
 export function parseProductForm(formData: FormData):
   | { success: true; data: ProductInput }
-  | { success: false; error: string } {
+  | { success: false; error: string; fieldErrors: ProductFieldErrors } {
   let specs: unknown = [];
   try {
     specs = JSON.parse(String(formData.get("specs_json") ?? "[]"));
   } catch {
-    return { success: false, error: "規格資料格式錯誤" };
+    return {
+      success: false,
+      error: VALIDATION_SUMMARY,
+      fieldErrors: { specs: "規格資料格式錯誤" },
+    };
   }
 
   const candidate = {
@@ -74,7 +97,7 @@ export function parseProductForm(formData: FormData):
 
   const parsed = productInputSchema.safeParse(candidate);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? "資料驗證失敗" };
+    return { success: false, error: VALIDATION_SUMMARY, fieldErrors: toFieldErrors(parsed.error) };
   }
   return { success: true, data: parsed.data };
 }

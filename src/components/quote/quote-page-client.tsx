@@ -12,16 +12,34 @@ import { quoteRequestSchema, type QuoteApiResponse } from "@/lib/quote/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { FormField, pruneFieldErrors } from "@/components/ui/form-field";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { ZodError } from "zod";
 
-interface FieldErrors {
+/** type alias(非 interface)才有隱含 index signature,可直接餵給 pruneFieldErrors */
+type FieldErrors = {
   customer_name?: string;
   email?: string;
   phone?: string;
   company?: string;
   message?: string;
+};
+
+/** 將 Zod 錯誤拆成 contact.* 欄位錯誤與一般錯誤(品項等) */
+function extractQuoteErrors(error: ZodError): { fieldErrors: FieldErrors; general: string | null } {
+  const fieldErrors: FieldErrors = {};
+  let general: string | null = null;
+  for (const issue of error.issues) {
+    const path = issue.path.join(".");
+    if (path.startsWith("contact.")) {
+      const key = path.replace("contact.", "") as keyof FieldErrors;
+      if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+    } else {
+      general = issue.message;
+    }
+  }
+  return { fieldErrors, general };
 }
 
 export function QuotePageClient() {
@@ -59,13 +77,9 @@ export function QuotePageClient() {
     );
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setFormError(null);
-    setFieldErrors({});
-
-    const fd = new FormData(e.currentTarget);
-    const payload = {
+  function buildPayload(form: HTMLFormElement) {
+    const fd = new FormData(form);
+    return {
       contact: {
         customer_name: String(fd.get("customer_name") ?? ""),
         company: String(fd.get("company") ?? ""),
@@ -80,19 +94,24 @@ export function QuotePageClient() {
       })),
       website: String(fd.get("website") ?? ""),
     };
+  }
 
-    const parsed = quoteRequestSchema.safeParse(payload);
+  /** 已顯示錯誤的欄位在輸入時即時重新驗證:修正即移除紅框與提示,不新增新錯誤 */
+  function handleFormChange(e: React.FormEvent<HTMLFormElement>) {
+    if (Object.keys(fieldErrors).length === 0) return;
+    const parsed = quoteRequestSchema.safeParse(buildPayload(e.currentTarget));
+    const fresh = parsed.success ? {} : extractQuoteErrors(parsed.error).fieldErrors;
+    setFieldErrors((prev) => pruneFieldErrors(prev, fresh));
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setFormError(null);
+    setFieldErrors({});
+
+    const parsed = quoteRequestSchema.safeParse(buildPayload(e.currentTarget));
     if (!parsed.success) {
-      const errors: FieldErrors = {};
-      let general: string | null = null;
-      for (const issue of parsed.error.issues) {
-        const path = issue.path.join(".");
-        if (path.startsWith("contact.")) {
-          errors[path.replace("contact.", "") as keyof FieldErrors] = issue.message;
-        } else {
-          general = issue.message;
-        }
-      }
+      const { fieldErrors: errors, general } = extractQuoteErrors(parsed.error);
       setFieldErrors(errors);
       setFormError(general);
       return;
@@ -218,52 +237,31 @@ export function QuotePageClient() {
           <CardDescription>免註冊登入,送出後立即取得案件編號。</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} noValidate className="space-y-3.5">
-            <div className="space-y-1.5">
-              <Label htmlFor="customer_name" required>
-                姓名
-              </Label>
-              <Input id="customer_name" name="customer_name" autoComplete="name" maxLength={100} />
-              {fieldErrors.customer_name ? (
-                <p className="text-xs text-destructive">{fieldErrors.customer_name}</p>
-              ) : null}
-            </div>
+          <form onSubmit={handleSubmit} onChange={handleFormChange} noValidate className="space-y-3.5">
+            <FormField id="customer_name" label="姓名" required error={fieldErrors.customer_name}>
+              <Input name="customer_name" autoComplete="name" maxLength={100} />
+            </FormField>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="company">公司名稱</Label>
-              <Input id="company" name="company" autoComplete="organization" maxLength={100} />
-              {fieldErrors.company ? (
-                <p className="text-xs text-destructive">{fieldErrors.company}</p>
-              ) : null}
-            </div>
+            <FormField id="company" label="公司名稱" error={fieldErrors.company}>
+              <Input name="company" autoComplete="organization" maxLength={100} />
+            </FormField>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="email" required>
-                Email
-              </Label>
-              <Input id="email" name="email" type="email" autoComplete="email" maxLength={255} />
-              {fieldErrors.email ? <p className="text-xs text-destructive">{fieldErrors.email}</p> : null}
-            </div>
+            <FormField id="email" label="Email" required error={fieldErrors.email}>
+              <Input name="email" type="email" autoComplete="email" maxLength={255} />
+            </FormField>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">聯絡電話</Label>
-              <Input id="phone" name="phone" type="tel" autoComplete="tel" maxLength={50} />
-              {fieldErrors.phone ? <p className="text-xs text-destructive">{fieldErrors.phone}</p> : null}
-            </div>
+            <FormField id="phone" label="聯絡電話" error={fieldErrors.phone}>
+              <Input name="phone" type="tel" autoComplete="tel" maxLength={50} />
+            </FormField>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="message">需求說明</Label>
+            <FormField id="message" label="需求說明" error={fieldErrors.message}>
               <Textarea
-                id="message"
                 name="message"
                 rows={4}
                 maxLength={2000}
                 placeholder="交期需求、替代料、加工、發票或其他說明…"
               />
-              {fieldErrors.message ? (
-                <p className="text-xs text-destructive">{fieldErrors.message}</p>
-              ) : null}
-            </div>
+            </FormField>
 
             {/* honeypot:一般使用者不可見、不可填 */}
             <div className="absolute -left-[9999px] top-auto" aria-hidden="true">

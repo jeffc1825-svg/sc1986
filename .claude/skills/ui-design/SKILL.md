@@ -13,9 +13,10 @@ description: SC1986 前台與後台 UI 開發規範。新增或修改任何頁�
 2. 禁止:硬編 hex、只調 light 不看 dark、用 `bg-white`/`bg-black` 表達語意背景(商品圖白底容器 `bg-white` 是唯一例外,因為產品照需要白底)。
 3. 元件先找 `src/components/ui/` 既有的(button/input/select/badge/card/table/skeleton/pagination...),不重複造輪子;缺的元件補進 ui/ 而不是寫在頁面裡。
 4. 路由與 storage key 一律 import 自 `src/config/`,JSX 內不得出現字串 `/products`、`/admin`、`sc1986_` 等硬編。
-5. 互動元件必有 `hover:`、`focus-visible:ring-2 ring-ring`、`disabled:opacity-50` 三態。
-6. 表單欄位:`<Label>` + 必填 `<span className="text-destructive">*</span>` + 錯誤訊息 `text-xs text-destructive`。
-7. Client component 最小化:只有需要 state/事件的葉子元件標 `'use client'`,頁面骨架保持 Server Component。
+5. 互動元件必有 `hover:`、`focus-visible:ring-2 ring-ring`、`disabled:opacity-50` 三態。可點擊元素 hover 一律手掌游標(globals.css 已有 `button:not(:disabled)` 全域規則,Button 元件另帶 `cursor-pointer`)。
+6. 觸發 mutation 或送出的按鈕必須防重複點擊:非同步 pending 時傳 `loading`(自動 disabled + spinner + aria-busy)給 `<Button>`;同步動作(如加入報價車)在回饋視窗內 `disabled`。
+7. 表單欄位一律用 `<FormField id label required error hint>` 包 `<Input/Textarea/Select>`(`src/components/ui/form-field.tsx`):錯誤時自動注入 `aria-invalid`(控制項紅框)並在下方顯示 `text-xs text-destructive` 訊息(role="alert")。表單加 `noValidate` 停用瀏覽器預設驗證,驗證一律走 Zod(前後端共用 schema)。已顯示錯誤的欄位在輸入時必須即時重新驗證:在 `<form onChange>` 事件委派重跑 schema,並用 `pruneFieldErrors`(同檔)合併——修正即移除紅框與訊息、仍未通過則更新訊息、輸入途中不新增新錯誤(新錯誤等送出時才顯示)。
+8. Client component 最小化:只有需要 state/事件的葉子元件標 `'use client'`,頁面骨架保持 Server Component。
 
 ## 版型速查
 
