@@ -3,6 +3,7 @@ import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { quoteRequestSchema, type QuoteApiResponse } from "@/lib/quote/schema";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { verifyTurnstileToken } from "@/lib/quote/turnstile";
 import { sendQuoteNotification, type SendResult } from "@/lib/notifications/quote-email";
 
 export const dynamic = "force-dynamic";
@@ -74,7 +75,16 @@ export async function POST(request: NextRequest) {
   }
   const { contact, items } = parsed.data;
 
-  // 4) 原子寫入(RPC 內部重查 active 商品並快照 sku/name;匿名詢價,無 cookie anon client)
+  // 4) Turnstile 人機驗證(未設定 secret 的開發環境會略過;正式環境 fail-closed)
+  const turnstile = await verifyTurnstileToken(parsed.data.turnstileToken, clientIp(request));
+  if (!turnstile.ok) {
+    if (turnstile.reason === "verify-unavailable") {
+      return json({ ok: false, error: "驗證服務暫時無法使用,請稍後再試或來電聯絡。" }, 503);
+    }
+    return json({ ok: false, error: "人機驗證未通過,請重新驗證後再送出。" }, 422);
+  }
+
+  // 5) 原子寫入(RPC 內部重查 active 商品並快照 sku/name;匿名詢價,無 cookie anon client)
   const supabase = createSupabasePublicClient();
   const { data, error } = await supabase.rpc("create_quote_request", {
     p_contact: {
@@ -113,7 +123,7 @@ export async function POST(request: NextRequest) {
 
   const result = data as { id: string; reference_code: string };
 
-  // 5) 回應後寄送通知並回寫結果(不阻塞使用者)
+  // 6) 回應後寄送通知並回寫結果(不阻塞使用者)
   after(async () => {
     try {
       const service = createSupabaseServiceClient();

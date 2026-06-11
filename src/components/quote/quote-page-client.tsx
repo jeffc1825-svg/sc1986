@@ -9,7 +9,10 @@ import { routes } from "@/config/routes";
 import { assets, quoteCartLimits } from "@/config/storage";
 import { useQuoteCart } from "@/components/quote/quote-cart-provider";
 import { quoteRequestSchema, type QuoteApiResponse } from "@/lib/quote/schema";
+import { getTurnstileSiteKey } from "@/lib/env";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
+import { Turnstile, type TurnstileHandle } from "@/components/ui/turnstile";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField, pruneFieldErrors } from "@/components/ui/form-field";
@@ -48,6 +51,11 @@ export function QuotePageClient() {
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
+
+  // Cloudflare Turnstile:未設定 site key(開發環境)時不渲染、不要求 token
+  const turnstileSiteKey = getTurnstileSiteKey();
+  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null);
+  const turnstileRef = React.useRef<TurnstileHandle>(null);
 
   if (!cart.ready) {
     return (
@@ -93,6 +101,7 @@ export function QuotePageClient() {
         note: it.note,
       })),
       website: String(fd.get("website") ?? ""),
+      turnstileToken: turnstileToken ?? undefined,
     };
   }
 
@@ -117,6 +126,11 @@ export function QuotePageClient() {
       return;
     }
 
+    if (turnstileSiteKey && !turnstileToken) {
+      setFormError("請先完成人機驗證再送出。");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch(routes.api.quote, {
@@ -127,6 +141,10 @@ export function QuotePageClient() {
       const body = (await res.json()) as QuoteApiResponse;
 
       if (body.ok) {
+        trackEvent("generate_lead", {
+          reference_code: body.referenceCode,
+          item_count: cart.items.length,
+        });
         cart.clear();
         router.push(routes.quoteSuccess(body.referenceCode));
         return;
@@ -136,8 +154,11 @@ export function QuotePageClient() {
         body.invalidProductIds.forEach((id) => cart.removeItem(id));
       }
       setFormError(body.error);
+      // token 為一次性,送出失敗後必須重置重新取得
+      turnstileRef.current?.reset();
     } catch {
       setFormError("連線異常,請稍後再試。");
+      turnstileRef.current?.reset();
     } finally {
       setSubmitting(false);
     }
@@ -268,6 +289,14 @@ export function QuotePageClient() {
               <label htmlFor="website">請勿填寫此欄位</label>
               <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
             </div>
+
+            {turnstileSiteKey ? (
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={turnstileSiteKey}
+                onToken={setTurnstileToken}
+              />
+            ) : null}
 
             {formError ? (
               <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2.5 text-sm text-destructive">

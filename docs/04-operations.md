@@ -18,7 +18,21 @@
 DNS 指向 Vercel(CNAME `cname.vercel-dns.com`)、SSL Full、開啟基礎 WAF/Bot Fight Mode。
 
 ### 4. Resend
-驗證寄件網域(SPF/DKIM)→ 取得 API key → 填入 `RESEND_API_KEY`、`QUOTE_NOTIFICATION_FROM`(已驗證網域)、`QUOTE_NOTIFICATION_EMAIL`(業務收件)。
+1. 建立 Resend 帳號,建議使用公司持有的帳號並開啟 2FA。
+2. 加入公司自有網域或寄件子網域(例如 `mail.example.com`),把 Resend 提供的 SPF/DKIM DNS 紀錄加到 Cloudflare,等待狀態成為 Verified。
+3. 建立僅供 SC1986 使用的 API key。
+4. Vercel 填入 `RESEND_API_KEY`、`QUOTE_NOTIFICATION_FROM`(例如 `山強詢價 <quote@mail.example.com>`)與 `QUOTE_NOTIFICATION_EMAIL`(業務收件信箱)。
+5. `QUOTE_NOTIFICATION_FROM` 必須使用已驗證網域;一般 Gmail 地址不可直接當作正式寄件網域。
+
+### 5. Cloudflare Turnstile(報價車人機驗證)
+1. Cloudflare Dashboard → Turnstile → Add widget,模式選 **Managed**(平常隱形,可疑流量才顯示互動驗證)。
+2. Hostnames 填正式網域與 `*.vercel.app`(供 Preview 測試);本機開發可留空金鑰,會直接略過驗證。
+3. Vercel 填入 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`(公開)與 `TURNSTILE_SECRET_KEY`(僅伺服器)。正式環境缺 secret 會 fail-closed,`/api/quote` 直接報錯。
+
+### 6. Google Analytics 4
+- 評估 ID `G-2QE7JNSK8Q` 集中於 `src/config/site.ts`(`analytics.ga4Id`),只在前台、production build 載入;後台 `/admin` 不追蹤。
+- GA4 後台 → 資料串流 → 加強型評估:**關閉「依瀏覽器歷程記錄變更網頁瀏覽」**(page_view 由程式碼於路由變化送出,避免重複計數)。
+- 詢價成功送 `generate_lead` 事件(參數 `reference_code`、`item_count`),建議在 GA4 標記為關鍵事件(轉換)。
 
 ## 金鑰與敏感資料
 
@@ -44,7 +58,8 @@ DNS 指向 Vercel(CNAME `cname.vercel-dns.com`)、SSL Full、開啟基礎 WAF/Bo
 - [ ] 搜尋、分類(含子分類)、篩選、分頁皆伺服器端生效
 - [ ] `quote_only` 商品不顯示任何數字價格
 - [ ] 詢價端對端:加入報價車 → 送出 → 取得案件編號 → DB 主檔+品項一致 → 通知信送達且 `notification_status='sent'`
-- [ ] 詢價防護:超量品項、honeypot、連續送出被擋
+- [ ] 詢價防護:超量品項、honeypot、連續送出被擋;Turnstile 無 token / 假 token 回 422,正常送出通過
+- [ ] GA4 即時報表可見前台 page_view 與詢價 `generate_lead`;`/admin` 無追蹤
 - [ ] 匿名直開 `/admin`、`/admin/products` → 被導向登入;非管理者登入 → 拒絕
 - [ ] 商品 CRUD、圖片上傳/刪除(Storage 同步)、批量操作正常
 - [ ] CSV 匯入:成功列皆 draft、錯誤列可下載、單列錯誤不中止

@@ -84,6 +84,7 @@ export async function sendQuoteNotification(payload: QuoteEmailPayload): Promise
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
+      signal: AbortSignal.timeout(10_000),
       headers: {
         Authorization: `Bearer ${env.resendApiKey}`,
         "Content-Type": "application/json",

@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
 import { TestModeBanner } from "@/components/site/test-mode-banner";
 import { TestModeNotice } from "@/components/site/test-mode-notice";
+import { GoogleAnalytics } from "@/components/site/google-analytics";
 
 /**
  * 前台所有頁面一律動態渲染:
@@ -20,6 +21,8 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         <SiteFooter />
       </div>
       <TestModeNotice />
+      {/* GA4:僅前台、僅 production build 載入 */}
+      <GoogleAnalytics />
     </QuoteCartProvider>
   );
 }

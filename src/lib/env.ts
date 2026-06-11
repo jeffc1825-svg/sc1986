@@ -61,3 +61,27 @@ export function getNotificationEnv(): {
   }
   return { resendApiKey, to, from };
 }
+
+/**
+ * Cloudflare Turnstile site key(公開,client 與 server 皆可用)。
+ * 未設定回傳 null → 前端不渲染驗證 widget(開發環境允許)。
+ */
+export function getTurnstileSiteKey(): string | null {
+  return process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || null;
+}
+
+/**
+ * Cloudflare Turnstile secret(僅伺服器端)。
+ * 開發環境允許未設定(回傳 null → 略過驗證);
+ * 正式環境(VERCEL_ENV=production)缺設定時 throw(fail-closed)。
+ */
+export function getTurnstileEnv(): { secretKey: string } | null {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  const isProduction = process.env.VERCEL_ENV === "production";
+
+  if (!secretKey) {
+    if (isProduction) throw new EnvError("TURNSTILE_SECRET_KEY");
+    return null;
+  }
+  return { secretKey };
+}

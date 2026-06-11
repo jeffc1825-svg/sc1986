@@ -31,6 +31,10 @@ export const siteConfig = {
   links: {
     facebook: "https://www.facebook.com/SanChun1986/",
   },
+  analytics: {
+    /** GA4 評估 ID(公開值);僅在 production build 載入追蹤 */
+    ga4Id: "G-2QE7JNSK8Q",
+  },
   notice: {
     pricing: "標示價格均為含稅參考價 TWD,正式價格以業務報價為準",
     topBar: "線上詢價免登入,業務將會盡快回覆",

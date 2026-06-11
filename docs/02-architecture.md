@@ -56,7 +56,8 @@ src/
     utils.ts
     supabase/ (browser.ts server.ts service.ts public.ts middleware.ts)
     catalog/ (queries.ts categories.ts)
-    quote/ (schema.ts rate-limit.ts)
+    quote/ (schema.ts rate-limit.ts turnstile.ts)
+    analytics.ts                 # GA4 trackEvent helper(client)
     admin/ (guard.ts product-actions.ts import-actions.ts quote-actions.ts csv.ts)
     notifications/ (quote-email.ts)
   types/ (database.ts domain.ts)
@@ -122,7 +123,7 @@ Service role:只在伺服器端、且呼叫前已通過 `requireAdmin()`(或系�
 3. SKU/name 以資料庫當下值寫入快照,不用瀏覽器傳值。
 4. 產生 `reference_code`,主檔+品項同交易寫入。
 
-`/api/quote` 在 RPC 之外另做:Zod 解析、body ≤ 32KB、IP rate limit(每分鐘 5 次,記憶體式,文件註明多 instance 限制)、honeypot 欄位 `website` 必須為空、成功後非同步寄信並回寫 `notification_status/notification_error`(用 service client;寄信失敗不可吞掉)。
+`/api/quote` 在 RPC 之外另做:Zod 解析、body ≤ 32KB、IP rate limit(每分鐘 5 次,記憶體式,文件註明多 instance 限制)、honeypot 欄位 `website` 必須為空、**Cloudflare Turnstile 人機驗證**(`lib/quote/turnstile.ts` 伺服器端 siteverify;前端 widget 在 `/quote` 表單,Managed 模式平常隱形、可疑流量才跳互動驗證;未設定 `TURNSTILE_SECRET_KEY` 的開發環境略過,正式環境缺設定 fail-closed,siteverify 連線失敗回 503 不放行)。成功回應後以 `after()` 非同步發送 Resend Email,再用 service client 回寫 `notification_status/notification_error`;通知失敗不得回滾已建立的詢價案件。
 
 ## 分類(巢狀)與快取
 
@@ -149,8 +150,10 @@ Service role:只在伺服器端、且呼叫前已通過 `requireAdmin()`(或系�
 NEXT_PUBLIC_SITE_URL=
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 # Server only
 SUPABASE_SERVICE_ROLE_KEY=
+TURNSTILE_SECRET_KEY=
 RESEND_API_KEY=
 QUOTE_NOTIFICATION_EMAIL=
 QUOTE_NOTIFICATION_FROM=
@@ -160,7 +163,9 @@ SUPABASE_DB_URL=
 
 建庫與管理者建立皆免開 Dashboard:`pnpm db:apply`(migration runner,`scripts/db-apply.mjs`,以 `_migrations` 表追蹤)、`pnpm admin:create`(`scripts/create-admin.mjs`,service role 建 Auth 使用者 + upsert `admin_users`)。
 
-正式環境缺必要變數 → 直接報錯(fail-closed),不得悄悄切換示範資料。開發環境允許缺 RESEND(通知記為 `skipped`)。
+正式環境缺必要變數 → 直接報錯(fail-closed),不得悄悄切換示範資料。開發環境允許缺 Resend / Turnstile 設定(通知記為 `skipped`;Turnstile 略過驗證且前端不渲染 widget)。`TURNSTILE_SECRET_KEY` 與 `SUPABASE_SERVICE_ROLE_KEY` 都只能存在伺服器環境,不得加 `NEXT_PUBLIC_`。
+
+GA4(評估 ID `G-2QE7JNSK8Q`)不走環境變數:集中於 `src/config/site.ts` 的 `analytics.ga4Id`(公開值),由 `components/site/google-analytics.tsx` 僅在前台 layout、且 `NODE_ENV=production` 時載入;page_view 由路由變化手動送出(`send_page_view:false`),GA4 後台「加強型評估 → 依瀏覽器歷程記錄變更網頁瀏覽」應關閉以免重複計數。詢價成功送 `generate_lead` 事件(`lib/analytics.ts` 的 `trackEvent`)。
 
 ## 渲染策略
 

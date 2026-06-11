@@ -37,6 +37,8 @@ export const quoteRequestSchema = z.object({
     .max(quoteCartLimits.maxItems, `一次詢價最多 ${quoteCartLimits.maxItems} 項`),
   /** honeypot:正常使用者永遠是空字串 */
   website: z.string().max(0, "驗證失敗").optional().or(z.literal("")),
+  /** Cloudflare Turnstile token;是否必填由伺服器依環境設定決定 */
+  turnstileToken: z.string().max(4096, "驗證資料異常,請重新整理後再試").optional(),
 });
 
 export type QuoteRequestInput = z.infer<typeof quoteRequestSchema>;
