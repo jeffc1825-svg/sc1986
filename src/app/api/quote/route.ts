@@ -2,7 +2,7 @@ import { NextResponse, after, type NextRequest } from "next/server";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { quoteRequestSchema, type QuoteApiResponse } from "@/lib/quote/schema";
-import { checkRateLimit } from "@/lib/quote/rate-limit";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { sendQuoteNotification, type SendResult } from "@/lib/notifications/quote-email";
 
 export const dynamic = "force-dynamic";
