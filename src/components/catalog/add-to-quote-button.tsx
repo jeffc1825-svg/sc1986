@@ -4,6 +4,7 @@ import * as React from "react";
 import { Check, FilePlus2, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuoteCart } from "@/components/quote/quote-cart-provider";
+import { siteConfig } from "@/config/site";
 import { quoteCartLimits } from "@/config/storage";
 import type { ProductStockStatus } from "@/types";
 import { cn } from "@/lib/utils";
@@ -20,7 +21,16 @@ interface ProductInfo {
 export function AddToQuoteButton({ product, className }: { product: ProductInfo; className?: string }) {
   const { addItem } = useQuoteCart();
   const [added, setAdded] = React.useState(false);
+  const quoteFeature = siteConfig.features.quoteRequest;
   const discontinued = product.stockStatus === "discontinued";
+
+  if (!quoteFeature.enabled) {
+    return (
+      <Button variant="outline" size="sm" className={cn("w-full", className)} disabled>
+        {quoteFeature.disabledLabel}
+      </Button>
+    );
+  }
 
   if (discontinued) {
     return (
@@ -39,7 +49,7 @@ export function AddToQuoteButton({ product, className }: { product: ProductInfo;
       onClick={() => {
         const ok = addItem(product);
         if (!ok) {
-          window.alert(`報價車最多 ${quoteCartLimits.maxItems} 項,請先送出目前的詢價。`);
+          window.alert(`一次詢價最多 ${quoteCartLimits.maxItems} 項,請先送出目前的詢價。`);
           return;
         }
         setAdded(true);
@@ -47,7 +57,7 @@ export function AddToQuoteButton({ product, className }: { product: ProductInfo;
       }}
     >
       {added ? <Check aria-hidden /> : <FilePlus2 aria-hidden />}
-      {added ? "已加入" : "加入報價車"}
+      {added ? "已加入" : quoteFeature.label}
     </Button>
   );
 }
@@ -57,12 +67,21 @@ export function AddToQuoteWithQuantity({ product }: { product: ProductInfo }) {
   const { addItem } = useQuoteCart();
   const [quantity, setQuantity] = React.useState(1);
   const [added, setAdded] = React.useState(false);
+  const quoteFeature = siteConfig.features.quoteRequest;
   const discontinued = product.stockStatus === "discontinued";
+
+  if (!quoteFeature.enabled) {
+    return (
+      <div className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+        {quoteFeature.disabledMessage}
+      </div>
+    );
+  }
 
   if (discontinued) {
     return (
       <div className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-        本商品已停產,無法直接詢價訂購;您仍可送出詢價,由業務為您推薦替代料件。
+        本商品已停產,無法直接加入詢價;您仍可聯絡業務,由我們協助推薦替代料件。
       </div>
     );
   }
@@ -109,7 +128,7 @@ export function AddToQuoteWithQuantity({ product }: { product: ProductInfo }) {
         onClick={() => {
           const ok = addItem(product, quantity);
           if (!ok) {
-            window.alert(`報價車最多 ${quoteCartLimits.maxItems} 項,請先送出目前的詢價。`);
+            window.alert(`一次詢價最多 ${quoteCartLimits.maxItems} 項,請先送出目前的詢價。`);
             return;
           }
           setAdded(true);
@@ -117,7 +136,7 @@ export function AddToQuoteWithQuantity({ product }: { product: ProductInfo }) {
         }}
       >
         {added ? <Check aria-hidden /> : <FilePlus2 aria-hidden />}
-        {added ? "已加入報價車" : "加入報價車"}
+        {added ? "已加入詢價" : quoteFeature.label}
       </Button>
     </div>
   );

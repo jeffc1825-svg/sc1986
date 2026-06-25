@@ -56,12 +56,61 @@ export default async function HomePage() {
   const { newProducts, categories, brands, stats, hasDataError } =
     await loadHomeData();
   const tree = buildCategoryTree(categories);
+  const quoteFeature = siteConfig.features.quoteRequest;
   const carouselSlides: HomeCarouselSlide[] = siteConfig.homeHighlights.map(
-    (slide) => ({
-      ...slide,
-      href: slide.action === "quote" ? routes.quote : routes.products,
-    }),
+    (slide) => {
+      const quoteRelated = slide.action === "quote" || slide.icon === "quote";
+      if (!quoteFeature.enabled && quoteRelated) {
+        return {
+          ...slide,
+          title: quoteFeature.disabledTitle,
+          description: quoteFeature.disabledMessage,
+          actionLabel: "查看聯絡方式",
+          href: routes.about,
+        };
+      }
+
+      return {
+        ...slide,
+        href: slide.action === "quote" ? routes.quote : routes.products,
+      };
+    },
   );
+  const quoteSteps = quoteFeature.enabled
+    ? [
+        {
+          icon: Search,
+          title: `1. 搜尋與${quoteFeature.label}`,
+          text: "以 SKU、品名或規格找到商品,逐項加入詢價清單並填寫數量與備註。",
+        },
+        {
+          icon: MailCheck,
+          title: "2. 免登入送出詢價",
+          text: "留下聯絡方式即可送出,系統立即產生案件編號。",
+        },
+        {
+          icon: PackageCheck,
+          title: "3. 業務回覆報價",
+          text: "1 個工作天內回覆價格、交期與替代料建議,確認後安排出貨。",
+        },
+      ]
+    : [
+        {
+          icon: Search,
+          title: `1. ${quoteFeature.disabledTitle}`,
+          text: quoteFeature.disabledMessage,
+        },
+        {
+          icon: MailCheck,
+          title: "2. 電話或 Email 聯絡",
+          text: "請提供 SKU、品名、數量與需求備註,由業務協助確認。",
+        },
+        {
+          icon: PackageCheck,
+          title: "3. 業務協助回覆",
+          text: "我們會依品項、數量與交期需求回覆價格與替代料建議。",
+        },
+      ];
 
   return (
     <div>
@@ -129,7 +178,7 @@ export default async function HomePage() {
           <DataUnavailableNotice
             message={
               hasDataError
-                ? "最新上架資料暫時無法載入,歡迎先以電話或報價車聯絡詢價。"
+                ? "最新上架資料暫時無法載入,歡迎先以電話或 Email 聯絡詢價。"
                 : "商品上架準備中,歡迎先與我們聯絡詢價。"
             }
           />
@@ -142,23 +191,7 @@ export default async function HomePage() {
           <div>
             <h2 className="text-xl font-bold text-foreground">詢價流程</h2>
             <ol className="mt-4 space-y-4">
-              {[
-                {
-                  icon: Search,
-                  title: "1. 搜尋與加入報價車",
-                  text: "以 SKU、品名或規格找到商品,逐項加入並填寫數量與備註。",
-                },
-                {
-                  icon: MailCheck,
-                  title: "2. 免登入送出詢價",
-                  text: "留下聯絡方式即可送出,系統立即產生案件編號。",
-                },
-                {
-                  icon: PackageCheck,
-                  title: "3. 業務回覆報價",
-                  text: "1 個工作天內回覆價格、交期與替代料建議,確認後安排出貨。",
-                },
-              ].map((step) => (
+              {quoteSteps.map((step) => (
                 <li key={step.title} className="flex gap-3">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-accent text-accent-foreground">
                     <step.icon className="size-4" aria-hidden />

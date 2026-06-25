@@ -8,6 +8,7 @@ SC1986 是「RFQ 詢價型工業電子材料商城」。大量 SKU 型錄 + 部�
 2. 需要業務脈絡 → `docs/01-business.md`;技術細節 → `docs/02-architecture.md`。
 3. 動 UI 前先讀 skill `.Codex/skills/ui-design/`;動資料庫前先讀 `.Codex/skills/database/`;收尾驗證用 `.Codex/skills/qa-release/`。
 4. 完成後更新 `PLAN.md` 的勾選與進度紀錄(Progress Log)。
+5. 每次完成工作回報時,提供可直接用於 git commit 的 title 與 description。
 
 ## 技術棧(已核准,勿擅自更換)
 

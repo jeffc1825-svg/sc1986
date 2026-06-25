@@ -11,6 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+  const quoteFeature = siteConfig.features.quoteRequest;
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="text-2xl font-bold text-foreground">關於我們</h1>
@@ -30,9 +32,9 @@ export default function AboutPage() {
       <section className="mt-8">
         <h2 className="text-lg font-bold text-foreground">詢價與報價流程</h2>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-foreground">
-          <li>於商品頁將需要的品項加入報價車,逐項填寫數量與需求備註(例如長度、加工、包裝)。</li>
+          <li>於商品頁點選「{quoteFeature.label}」,逐項填寫數量與需求備註(例如長度、加工、包裝)。</li>
           <li>
-            在<Link href={routes.quote} className="mx-0.5 text-primary hover:underline">報價車</Link>
+            在<Link href={routes.quote} className="mx-0.5 text-primary hover:underline">{quoteFeature.label}</Link>
             填寫聯絡方式後送出,系統會提供案件編號,免註冊登入。
           </li>
           <li>業務於 1 個工作天內回覆正式價格、交期與替代料建議。</li>

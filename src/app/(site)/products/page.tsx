@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "商品目錄",
   description:
-    "瀏覽全部工業電子材料商品,支援 SKU、品名與規格搜尋、分類與庫存篩選,線上加入報價車快速詢價。",
+    "瀏覽全部工業電子材料商品,支援 SKU、品名與規格搜尋、分類與庫存篩選,線上整理品項快速詢價。",
 };
 
 type SearchParams = { [key: string]: string | string[] | undefined };

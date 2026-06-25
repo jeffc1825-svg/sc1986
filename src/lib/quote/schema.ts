@@ -20,7 +20,7 @@ export const quoteContactSchema = z.object({
 });
 
 export const quoteItemSchema = z.object({
-  product_id: z.string().uuid("品項資料異常,請重新加入報價車"),
+  product_id: z.string().uuid("品項資料異常,請重新加入詢價清單"),
   quantity: z
     .number({ invalid_type_error: "數量必須是數字" })
     .int("數量必須是整數")
@@ -33,7 +33,7 @@ export const quoteRequestSchema = z.object({
   contact: quoteContactSchema,
   items: z
     .array(quoteItemSchema)
-    .min(1, "報價車是空的")
+    .min(1, "詢價清單是空的")
     .max(quoteCartLimits.maxItems, `一次詢價最多 ${quoteCartLimits.maxItems} 項`),
   /** honeypot:正常使用者永遠是空字串 */
   website: z.string().max(0, "驗證失敗").optional().or(z.literal("")),

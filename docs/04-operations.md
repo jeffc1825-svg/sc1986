@@ -24,7 +24,7 @@ DNS 指向 Vercel(CNAME `cname.vercel-dns.com`)、SSL Full、開啟基礎 WAF/Bo
 4. Vercel 填入 `RESEND_API_KEY`、`QUOTE_NOTIFICATION_FROM`(例如 `山強詢價 <quote@mail.example.com>`)與 `QUOTE_NOTIFICATION_EMAIL`(業務收件信箱)。
 5. `QUOTE_NOTIFICATION_FROM` 必須使用已驗證網域;一般 Gmail 地址不可直接當作正式寄件網域。
 
-### 5. Cloudflare Turnstile(報價車人機驗證)
+### 5. Cloudflare Turnstile(我要詢價人機驗證)
 1. Cloudflare Dashboard → Turnstile → Add widget,模式選 **Managed**(平常隱形,可疑流量才顯示互動驗證)。
 2. Hostnames 填正式網域與 `*.vercel.app`(供 Preview 測試);本機開發可留空金鑰,會直接略過驗證。
 3. Vercel 填入 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`(公開)與 `TURNSTILE_SECRET_KEY`(僅伺服器)。正式環境缺 secret 會 fail-closed,`/api/quote` 直接報錯。
@@ -46,6 +46,10 @@ DNS 指向 Vercel(CNAME `cname.vercel-dns.com`)、SSL Full、開啟基礎 WAF/Bo
 - Vercel deployment 通知;Supabase Database 用量告警。
 - 詢價通知失敗會記錄在 `quote_requests.notification_status='failed'`,後台儀表板可見,需人工補寄。
 
+## 營運開關
+
+- 詢價量過大需暫停受理時,將 `src/config/site.ts` 的 `features.quoteRequest.enabled` 改為 `false` 後部署。前台入口會隱藏或停用,`/api/quote` 也會回覆暫停受理訊息。
+
 ## 內容與授權
 
 - 商品圖片與文案:只用自有、供應商授權或原廠正式資料,保留來源依據。
@@ -57,7 +61,7 @@ DNS 指向 Vercel(CNAME `cname.vercel-dns.com`)、SSL Full、開啟基礎 WAF/Bo
 - [ ] 匿名瀏覽:首頁/目錄/詳情正常,看不到 draft/archived 商品
 - [ ] 搜尋、分類(含子分類)、篩選、分頁皆伺服器端生效
 - [ ] `quote_only` 商品不顯示任何數字價格
-- [ ] 詢價端對端:加入報價車 → 送出 → 取得案件編號 → DB 主檔+品項一致 → 通知信送達且 `notification_status='sent'`
+- [ ] 詢價端對端:我要詢價 → 送出 → 取得案件編號 → DB 主檔+品項一致 → 通知信送達且 `notification_status='sent'`
 - [ ] 詢價防護:超量品項、honeypot、連續送出被擋;Turnstile 無 token / 假 token 回 422,正常送出通過
 - [ ] GA4 即時報表可見前台 page_view 與詢價 `generate_lead`;`/admin` 無追蹤
 - [ ] 匿名直開 `/admin`、`/admin/products` → 被導向登入;非管理者登入 → 拒絕

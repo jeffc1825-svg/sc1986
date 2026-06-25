@@ -46,12 +46,23 @@ export const siteConfig = {
     logoAlt: "山強電訊資材商標",
     tagline: "電子材料、耗材、線材加工、PCB備料加工",
   },
+  features: {
+    quoteRequest: {
+      /** 關閉後會隱藏入口、停用商品頁按鈕,並讓 /api/quote 暫停受理 */
+      enabled: true as boolean,
+      label: "我要詢價",
+      listLabel: "詢價清單",
+      disabledLabel: "暫停詢價",
+      disabledTitle: "線上詢價暫停受理",
+      disabledMessage: "目前線上詢價暫停受理,請改以電話或 Email 聯絡。",
+    },
+  },
   homeHighlights: [
     {
       eyebrow: "線上詢價服務",
       title: "找料、確認規格、整理數量，一張詢價單完成",
       description:
-        "搜尋商品後加入報價車，免登入即可送出需求。業務將依品項、數量與交期需求提供正式報價。",
+        "搜尋商品後點選我要詢價，免登入即可送出需求。業務將依品項、數量與交期需求提供正式報價。",
       actionLabel: "開始整理詢價",
       action: "products",
       icon: "quote",

@@ -43,7 +43,7 @@ export interface CategoryOption {
  */
 export const CATEGORY_MAX_DEPTH = 4;
 
-/** 報價車品項(localStorage 與 context 共用) */
+/** 詢價清單品項(localStorage 與 context 共用) */
 export interface QuoteCartItem {
   productId: string;
   sku: string;

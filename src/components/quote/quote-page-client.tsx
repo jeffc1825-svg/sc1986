@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, FileText, Minus, Plus, Trash2 } from "lucide-react";
 import { routes } from "@/config/routes";
+import { siteConfig } from "@/config/site";
 import { assets, quoteCartLimits } from "@/config/storage";
 import { useQuoteCart } from "@/components/quote/quote-cart-provider";
 import { quoteRequestSchema, type QuoteApiResponse } from "@/lib/quote/schema";
@@ -51,11 +52,30 @@ export function QuotePageClient() {
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
+  const quoteFeature = siteConfig.features.quoteRequest;
 
   // Cloudflare Turnstile:未設定 site key(開發環境)時不渲染、不要求 token
   const turnstileSiteKey = getTurnstileSiteKey();
   const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null);
   const turnstileRef = React.useRef<TurnstileHandle>(null);
+
+  if (!quoteFeature.enabled) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border py-16 text-center">
+        <FileText className="size-10 text-muted-foreground" aria-hidden />
+        <p className="font-medium text-foreground">{quoteFeature.disabledTitle}</p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          {quoteFeature.disabledMessage}
+        </p>
+        <Link
+          href={routes.about}
+          className="mt-1 inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          查看聯絡方式
+        </Link>
+      </div>
+    );
+  }
 
   if (!cart.ready) {
     return (
@@ -71,9 +91,9 @@ export function QuotePageClient() {
     return (
       <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border py-16 text-center">
         <FileText className="size-10 text-muted-foreground" aria-hidden />
-        <p className="font-medium text-foreground">報價車目前是空的</p>
+        <p className="font-medium text-foreground">目前沒有待詢價品項</p>
         <p className="max-w-sm text-sm text-muted-foreground">
-          瀏覽商品並點「加入報價車」,即可在此整理數量與備註,一次送出詢價。
+          瀏覽商品並點「{quoteFeature.label}」,即可在此整理數量與備註,一次送出詢價。
         </p>
         <Link
           href={routes.products}

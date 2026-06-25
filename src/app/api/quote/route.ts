@@ -1,6 +1,7 @@
 import { NextResponse, after, type NextRequest } from "next/server";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { siteConfig } from "@/config/site";
 import { quoteRequestSchema, type QuoteApiResponse } from "@/lib/quote/schema";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/quote/turnstile";
@@ -40,6 +41,10 @@ async function recordNotification(quoteId: string, result: SendResult) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!siteConfig.features.quoteRequest.enabled) {
+    return json({ ok: false, error: siteConfig.features.quoteRequest.disabledMessage }, 503);
+  }
+
   // 1) payload 大小上限
   const contentLength = Number(request.headers.get("content-length") ?? "0");
   if (contentLength > MAX_BODY_BYTES) {

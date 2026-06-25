@@ -4,7 +4,7 @@
  */
 
 export const storageKeys = {
-  /** 報價車(localStorage,JSON) */
+  /** 詢價清單(localStorage,JSON) */
   quoteCart: "sc1986_quote_cart",
   /** 主題設定(localStorage) */
   theme: "sc1986_theme",
@@ -37,7 +37,7 @@ export const uploadLimits = {
 } as const;
 
 export const quoteCartLimits = {
-  /** 報價車品項上限 */
+  /** 詢價清單品項上限 */
   maxItems: 50,
   /** 單品項數量上限 */
   maxQuantity: 9999,

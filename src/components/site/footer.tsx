@@ -4,11 +4,13 @@ import { Clock, Facebook, Mail, MapPin, Phone, Printer } from "lucide-react";
 import { routes, productsUrl } from "@/config/routes";
 import { siteConfig } from "@/config/site";
 
+const quoteFeature = siteConfig.features.quoteRequest;
+
 const serviceLinks = [
   { label: "全部商品", href: routes.products },
   { label: "現貨商品", href: productsUrl({ stock_status: "in_stock" }) },
   { label: "可詢價商品", href: productsUrl({ price_mode: "quote_only" }) },
-  { label: "我的報價車", href: routes.quote },
+  ...(quoteFeature.enabled ? [{ label: quoteFeature.label, href: routes.quote }] : []),
 ];
 
 const infoLinks = [

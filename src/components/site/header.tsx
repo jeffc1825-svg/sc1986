@@ -9,12 +9,16 @@ import { CategoryNav } from "@/components/site/category-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export function SiteHeader() {
+  const quoteFeature = siteConfig.features.quoteRequest;
+
   return (
     <header className="sticky top-0 z-40 shadow-sm">
       {/* 頂部資訊列 */}
       <div className="bg-foreground text-background dark:bg-card dark:text-foreground dark:border-b dark:border-border">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-1.5 text-xs">
-          <p className="truncate opacity-90">{siteConfig.notice.topBar}</p>
+          <p className="truncate opacity-90">
+            {quoteFeature.enabled ? siteConfig.notice.topBar : quoteFeature.disabledMessage}
+          </p>
           <div className="hidden items-center gap-4 sm:flex">
             <span className="inline-flex items-center gap-1 opacity-90">
               <Phone className="size-3" aria-hidden />
@@ -28,7 +32,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* 主列:Logo + 搜尋 + 報價車 */}
+      {/* 主列:Logo + 搜尋 + 我要詢價 */}
       <div className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2 sm:gap-6 sm:py-3">
           <Link href={routes.home} className="flex shrink-0 items-center gap-3" aria-label="回首頁">

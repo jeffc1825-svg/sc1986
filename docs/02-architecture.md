@@ -37,7 +37,7 @@ src/
     (globals.css, layout.tsx, page.tsx, error.tsx, not-found.tsx, sitemap.ts, robots.ts, icon.png)
     products/page.tsx            # 目錄:搜尋/篩選/分頁(全部伺服器端)
     products/[slug]/page.tsx     # 詳情
-    quote/page.tsx               # 報價車+表單
+    quote/page.tsx               # 我要詢價+表單
     quote/success/page.tsx
     about/page.tsx
     api/quote/route.ts           # POST 建立詢價
@@ -70,7 +70,7 @@ public/ brand/ placeholder-product.svg
 
 - `src/config/routes.ts`:所有頁面路由、API path、middleware matcher、產生器(如 `routes.productDetail(slug)`)。
 - `src/config/storage.ts`:localStorage key(`sc1986_quote_cart`、`sc1986_theme`)、bucket `product-images`、公開資產前綴、fallback 圖、path 建立規則、上傳限制(MIME/大小/張數)。
-- `src/config/site.ts`:站名、公司資訊、聯絡方式、營業時間、導覽連結、社群連結、預設 SEO。
+- `src/config/site.ts`:站名、公司資訊、聯絡方式、營業時間、導覽連結、社群連結、預設 SEO、前台功能開關(`features.quoteRequest.enabled`)。
 
 ## 公開路由
 
@@ -79,7 +79,7 @@ public/ brand/ placeholder-product.svg
 | `/`                                                                   | 首頁(主視覺、分類捷徑、新品、品牌牆)                             |
 | `/products?q=&category=&brand=&price_mode=&stock_status=&sort=&page=` | 目錄                                                             |
 | `/products/[slug]`                                                    | 詳情                                                             |
-| `/quote`、`/quote/success?ref=`                                       | 報價車、成功頁                                                   |
+| `/quote`、`/quote/success?ref=`                                       | 我要詢價、成功頁                                                 |
 | `/about`                                                              | 公司與服務說明                                                   |
 | `POST /api/quote`                                                     | 建立詢價                                                         |
 | `GET /api/categories`                                                 | 公開分類樹 JSON(Header 選單非同步取用;CDN + Data Cache 雙層快取) |
