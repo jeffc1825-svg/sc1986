@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme/theme-provider";
 
 /**
  * Cloudflare Turnstile widget(explicit render)。
  * - Managed 模式:平常隱形通過,可疑流量才顯示互動驗證。
- * - 主題跟隨 next-themes(light/dark 重新渲染 widget)。
+ * - 主題跟隨站內 theme provider(light/dark 重新渲染 widget)。
  * - token 取得/過期/錯誤一律回呼 onToken(token | null)。
  * - 父層可透過 ref.reset() 在送出失敗後重置(token 為一次性)。
  */
@@ -73,12 +73,15 @@ export function Turnstile({ siteKey, onToken, ref }: TurnstileProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const widgetIdRef = React.useRef<string | null>(null);
   const onTokenRef = React.useRef(onToken);
-  onTokenRef.current = onToken;
 
   const { resolvedTheme } = useTheme();
   const theme: "light" | "dark" = resolvedTheme === "dark" ? "dark" : "light";
 
   const [failed, setFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    onTokenRef.current = onToken;
+  }, [onToken]);
 
   React.useImperativeHandle(ref, () => ({
     reset: () => {

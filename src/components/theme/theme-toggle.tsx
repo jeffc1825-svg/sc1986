@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Moon, Sun, Monitor } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/theme/theme-provider";
 
 const order = ["light", "dark", "system"] as const;
 const labels: Record<(typeof order)[number], string> = {

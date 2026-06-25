@@ -28,6 +28,13 @@ export function getSupabaseEnv() {
   };
 }
 
+export function hasSupabasePublicEnv(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim(),
+  );
+}
+
 /** Service role(僅伺服器端;呼叫端必須已完成權限檢查) */
 export function getServiceRoleKey(): string {
   return required("SUPABASE_SERVICE_ROLE_KEY", process.env.SUPABASE_SERVICE_ROLE_KEY);

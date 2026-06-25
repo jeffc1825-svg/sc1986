@@ -30,21 +30,23 @@ export function SiteHeader() {
 
       {/* 主列:Logo + 搜尋 + 報價車 */}
       <div className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-6">
-          <Link href={routes.home} className="flex shrink-0 items-center gap-2" aria-label="回首頁">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2 sm:gap-6 sm:py-3">
+          <Link href={routes.home} className="flex shrink-0 items-center gap-3" aria-label="回首頁">
             <Image
               src={siteConfig.brand.logo}
               alt={siteConfig.brand.logoAlt}
-              width={40}
-              height={40}
+              width={80}
+              height={80}
               priority
-              className="size-10"
+              className="size-16 sm:size-20"
             />
-            <span className="hidden flex-col leading-tight sm:flex">
-              <span className="text-lg font-bold tracking-wide text-foreground">
-                {siteConfig.shortName}
+            <span className="hidden min-w-0 max-w-[18rem] flex-col leading-tight md:flex lg:max-w-none">
+              <span className="truncate text-xl font-bold tracking-wide text-foreground">
+                {siteConfig.company.fullName}
               </span>
-              <span className="text-[11px] text-muted-foreground">工業電子材料</span>
+              <span className="truncate text-[11px] text-muted-foreground">
+                {siteConfig.brand.tagline}
+              </span>
             </span>
           </Link>
 
